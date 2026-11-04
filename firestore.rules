@@ -1,0 +1,637 @@
+rules_version = '2';
+
+// ===============================================================
+// SakshamXTech Platform - Hardened Cloud Firestore Security Rules
+// ===============================================================
+//
+// Assumed Data Models:
+//
+// 1. blogs (/blogs/{blogId})
+//    - id: string (required, 1-100 chars, matches blogId)
+//    - slug: string (required, 1-150 chars)
+//    - title: string (required, 1-300 chars)
+//    - summary: string (required, 1-2000 chars)
+//    - content: string (required, 1-100000 chars)
+//    - category: string (required, 1-100 chars)
+//    - tags: list of strings (required, <= 30 items)
+//    - coverImage: string (required, 1-1000 chars)
+//    - author: map (required, keys: name, role, avatar)
+//    - publishedAt: string (required, 1-100 chars)
+//    - readTimeMinutes: number (required, 0-10000)
+//    - featured: bool (required)
+//    - views: number (required, >= 0)
+//    - youtubeVideoId: string (optional, <= 100 chars)
+//    - officialLink: string (optional, <= 1000 chars)
+//    - officialLinkLabel: string (optional, <= 200 chars)
+//    - deadline: string (optional, <= 200 chars)
+//    - perks: string (optional, <= 1000 chars)
+//    - eligibility: string (optional, <= 1000 chars)
+//    - quickSteps: list (optional, <= 30 items)
+//    - status: string (optional, <= 50 chars)
+//    - scheduledAt: string (optional, <= 100 chars)
+//    - updatedAt: number (optional, >= 0)
+//
+// 2. arcadeSolutions (/arcadeSolutions/{solutionId})
+//    - id: string (required, 1-100 chars, matches solutionId)
+//    - slug: string (required, 1-150 chars)
+//    - title: string (required, 1-300 chars)
+//    - labCode: string (required, 1-50 chars)
+//    - difficulty: string (required, 1-50 chars)
+//    - durationMinutes: number (required, 0-10000)
+//    - category: string (required, 1-100 chars)
+//    - description: string (required, 1-10000 chars)
+//    - prerequisites: list (required, <= 50 items)
+//    - pointsAwarded: number (required, 0-1000)
+//    - lastUpdated: string (required, 1-100 chars)
+//    - isPublished: bool (required)
+//    - steps: list (required, <= 100 items)
+//    - importantCommands: list (required, <= 100 items)
+//    - badgeTitle: string (optional, <= 200 chars)
+//    - badgeImageUrl: string (optional, <= 1000 chars)
+//    - youtubeVideoId: string (optional, <= 100 chars)
+//    - updatedAt: number (optional, >= 0)
+//
+// 3. unstopProblems (/unstopProblems/{problemId})
+//    - id: string (required, 1-100 chars, matches problemId)
+//    - dayNumber: number (required, >= 0)
+//    - date: string (required, 1-100 chars)
+//    - title: string (required, 1-300 chars)
+//    - slug: string (required, 1-150 chars)
+//    - difficulty: string (required, 1-50 chars)
+//    - description: string (required, 1-15000 chars)
+//    - inputFormat: string (required, <= 5000 chars)
+//    - outputFormat: string (required, <= 5000 chars)
+//    - constraints: list (required, <= 50 items)
+//    - examples: list (required, <= 30 items)
+//    - solutionExplanation: string (required, <= 30000 chars)
+//    - codeSolutions: list (required, <= 30 items)
+//    - tags: list (required, <= 50 items)
+//    - youtubeVideoId: string (optional, <= 100 chars)
+//    - updatedAt: number (optional, >= 0)
+//
+// 4. opportunities (/opportunities/{opportunityId})
+//    - id: string (required, 1-100 chars, matches opportunityId)
+//    - title: string (required, 1-300 chars)
+//    - slug: string (required, 1-150 chars)
+//    - company: string (required, 1-150 chars)
+//    - logo: string (required, 1-1000 chars)
+//    - category: string (required, 1-100 chars)
+//    - type: string (required, 1-50 chars)
+//    - description: string (required, 1-15000 chars)
+//    - eligibility: string (required, <= 5000 chars)
+//    - benefits: list (required, <= 50 items)
+//    - deadline: string (required, 1-100 chars)
+//    - officialUrl: string (required, 1-1000 chars)
+//    - status: string (required, 1-50 chars)
+//    - featured: bool (required)
+//    - postedDate: string (required, 1-100 chars)
+//    - clicksCount: number (required, >= 0)
+//    - location: string (optional, <= 200 chars)
+//    - updatedAt: number (optional, >= 0)
+//
+// 5. swags (/swags/{swagId})
+//    - id: string (required, 1-100 chars, matches swagId)
+//    - title: string (required, 1-300 chars)
+//    - brand: string (required, 1-100 chars)
+//    - category: string (required, 1-100 chars)
+//    - imageUrl: string (required, 1-1000 chars)
+//    - description: string (required, 0-15000 chars)
+//    - eligibility: string (required, <= 5000 chars)
+//    - howToClaim: list (required, <= 50 items)
+//    - campaignStartDate: string (required, 1-100 chars)
+//    - campaignEndDate: string (required, 1-100 chars)
+//    - officialSourceUrl: string (required, 1-1000 chars)
+//    - status: string (required, 1-50 chars)
+//    - featured: bool (required)
+//    - tierRequired: string (optional, <= 200 chars)
+//    - pointsRequired: number (optional, >= 0)
+//    - revealedDate: string (optional, <= 100 chars)
+//    - tierTags: list (optional, <= 10 items)
+//    - updatedAt: number (optional, >= 0)
+//
+// 6. cLessons (/cLessons/{lessonId})
+//    - id: string (required, 1-100 chars, matches lessonId)
+//    - dayNumber: number (required, >= 0)
+//    - title: string (required, 1-300 chars)
+//    - slug: string (required, 1-150 chars)
+//    - summary: string (required, 1-3000 chars)
+//    - durationMinutes: number (required, 0-10000)
+//    - content: string (required, 1-100000 chars)
+//    - codeSnippet: string (required, <= 50000 chars)
+//    - expectedOutput: string (required, <= 20000 chars)
+//    - youtubeVideoId: string (required, <= 100 chars)
+//    - practiceQuestions: list (required, <= 50 items)
+//    - quiz: list (required, <= 50 items)
+//    - isPublished: bool (required)
+//    - updatedAt: number (optional, >= 0)
+//
+// 7. resources (/resources/{resourceId})
+//    - id: string (required, 1-100 chars, matches resourceId)
+//    - title: string (required, 1-300 chars)
+//    - description: string (required, 1-15000 chars)
+//    - category: string (required, 1-100 chars)
+//    - format: string (required, 1-50 chars)
+//    - fileSize: string (required, 1-50 chars)
+//    - downloadUrl: string (required, 1-1000 chars)
+//    - previewImageUrl: string (required, 1-1000 chars)
+//    - tags: list (required, <= 50 items)
+//    - downloadsCount: number (required, >= 0)
+//    - publishedDate: string (required, 1-100 chars)
+//    - updatedAt: number (optional, >= 0)
+//
+// 8. appConfig (/appConfig/{configId})
+//    - configId: 'siteSettings' | 'arcadeCalculatorConfig' | 'youtubeFeed' | 'healthCheck'
+//
+// 9. leaderboard (/leaderboard/{userId})
+//    - rank: number (required, >= 0)
+//    - displayName: string (required, 1-100 chars)
+//    - points: number (required, >= 0)
+//    - badgesCount: number (required, >= 0)
+//    - avatar: string (required, <= 1000 chars)
+//    - tier: string (required, <= 100 chars)
+//    - streakDays: number (required, >= 0)
+//
+// 10. visitorEvents (/visitorEvents/{eventId})
+//    - id: string (required, 1-100 chars, matches eventId)
+//    - timestamp: string (required, 1-100 chars)
+//    - type: string (required, 1-50 chars)
+//    - device: string (required, 1-50 chars)
+//    - path: string (required, 1-500 chars)
+//    - userHash: string (optional, <= 100 chars)
+//
+// 11. youtubeClicks (/youtubeClicks/{clickId})
+//    - id: string (required, 1-100 chars, matches clickId)
+//    - timestamp: string (required, 1-100 chars)
+//    - videoId: string (required, 1-50 chars)
+//    - userHash: string (optional, <= 100 chars)
+//    - videoTitle: string (optional, <= 200 chars)
+//    - pagePath: string (optional, <= 500 chars)
+//
+// 12. _healthCheck (/_healthCheck/{probeId})
+//    - lastCheck: string (optional, <= 100 chars)
+//    - status: string (optional, <= 50 chars)
+// ===============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Common Validation Helper Functions
+    // ===============================================================
+
+    function isBoundedString(val, minLen, maxLen) {
+      return val is string && val.size() >= minLen && val.size() <= maxLen;
+    }
+
+    function isNonNegativeNumber(val, maxVal) {
+      return val is number && val >= 0 && val <= maxVal;
+    }
+
+    function isBoundedList(val, minSize, maxSize) {
+      return val is list && val.size() >= minSize && val.size() <= maxSize;
+    }
+
+    function isValidAuthor(author) {
+      return author is map &&
+             author.keys().hasAll(['name', 'role', 'avatar']) &&
+             author.keys().hasOnly(['name', 'role', 'avatar']) &&
+             isBoundedString(author.name, 1, 100) &&
+             isBoundedString(author.role, 0, 150) &&
+             isBoundedString(author.avatar, 0, 1000);
+    }
+
+    // ===============================================================
+    // Domain Validator Functions
+    // ===============================================================
+
+    function isValidBlog(blogId) {
+      let d = request.resource.data;
+      return d.keys().hasAll([
+               'id', 'slug', 'title', 'summary', 'content', 'category', 'tags',
+               'coverImage', 'author', 'publishedAt', 'readTimeMinutes', 'featured', 'views'
+             ]) &&
+             d.keys().hasOnly([
+               'id', 'slug', 'title', 'summary', 'content', 'category', 'tags',
+               'coverImage', 'author', 'publishedAt', 'readTimeMinutes', 'featured', 'views',
+               'youtubeVideoId', 'officialLink', 'officialLinkLabel', 'deadline', 'perks',
+               'eligibility', 'quickSteps', 'status', 'scheduledAt', 'updatedAt'
+             ]) &&
+             d.id == blogId &&
+             isBoundedString(d.id, 1, 100) &&
+             isBoundedString(d.slug, 1, 150) &&
+             isBoundedString(d.title, 1, 300) &&
+             isBoundedString(d.summary, 1, 2000) &&
+             isBoundedString(d.content, 1, 100000) &&
+             isBoundedString(d.category, 1, 100) &&
+             isBoundedList(d.tags, 0, 30) &&
+             isBoundedString(d.coverImage, 1, 1000) &&
+             isValidAuthor(d.author) &&
+             isBoundedString(d.publishedAt, 1, 100) &&
+             isNonNegativeNumber(d.readTimeMinutes, 10000) &&
+             d.featured is bool &&
+             isNonNegativeNumber(d.views, 100000000) &&
+             (!('youtubeVideoId' in d) || isBoundedString(d.youtubeVideoId, 0, 100)) &&
+             (!('officialLink' in d) || isBoundedString(d.officialLink, 0, 1000)) &&
+             (!('officialLinkLabel' in d) || isBoundedString(d.officialLinkLabel, 0, 200)) &&
+             (!('deadline' in d) || isBoundedString(d.deadline, 0, 200)) &&
+             (!('perks' in d) || isBoundedString(d.perks, 0, 1000)) &&
+             (!('eligibility' in d) || isBoundedString(d.eligibility, 0, 1000)) &&
+             (!('quickSteps' in d) || isBoundedList(d.quickSteps, 0, 30)) &&
+             (!('status' in d) || isBoundedString(d.status, 1, 50)) &&
+             (!('scheduledAt' in d) || isBoundedString(d.scheduledAt, 0, 100)) &&
+             (!('updatedAt' in d) || isNonNegativeNumber(d.updatedAt, 10000000000000));
+    }
+
+    function isValidArcadeSolution(solutionId) {
+      let d = request.resource.data;
+      return d.keys().hasAll([
+               'id', 'slug', 'title', 'labCode', 'difficulty', 'durationMinutes',
+               'category', 'description', 'prerequisites', 'pointsAwarded',
+               'lastUpdated', 'isPublished', 'steps', 'importantCommands'
+             ]) &&
+             d.keys().hasOnly([
+               'id', 'slug', 'title', 'labCode', 'difficulty', 'durationMinutes',
+               'category', 'description', 'prerequisites', 'pointsAwarded',
+               'lastUpdated', 'isPublished', 'steps', 'importantCommands',
+               'badgeTitle', 'badgeImageUrl', 'youtubeVideoId', 'updatedAt'
+             ]) &&
+             d.id == solutionId &&
+             isBoundedString(d.id, 1, 100) &&
+             isBoundedString(d.slug, 1, 150) &&
+             isBoundedString(d.title, 1, 300) &&
+             isBoundedString(d.labCode, 1, 50) &&
+             isBoundedString(d.difficulty, 1, 50) &&
+             isNonNegativeNumber(d.durationMinutes, 10000) &&
+             isBoundedString(d.category, 1, 100) &&
+             isBoundedString(d.description, 1, 10000) &&
+             isBoundedList(d.prerequisites, 0, 50) &&
+             isNonNegativeNumber(d.pointsAwarded, 1000) &&
+             isBoundedString(d.lastUpdated, 1, 100) &&
+             d.isPublished is bool &&
+             isBoundedList(d.steps, 0, 100) &&
+             isBoundedList(d.importantCommands, 0, 100) &&
+             (!('badgeTitle' in d) || isBoundedString(d.badgeTitle, 0, 200)) &&
+             (!('badgeImageUrl' in d) || isBoundedString(d.badgeImageUrl, 0, 1000)) &&
+             (!('youtubeVideoId' in d) || isBoundedString(d.youtubeVideoId, 0, 100)) &&
+             (!('updatedAt' in d) || isNonNegativeNumber(d.updatedAt, 10000000000000));
+    }
+
+    function isValidUnstopProblem(problemId) {
+      let d = request.resource.data;
+      return d.keys().hasAll([
+               'id', 'dayNumber', 'date', 'title', 'slug', 'difficulty', 'description',
+               'inputFormat', 'outputFormat', 'constraints', 'examples',
+               'solutionExplanation', 'codeSolutions', 'tags'
+             ]) &&
+             d.keys().hasOnly([
+               'id', 'dayNumber', 'date', 'title', 'slug', 'difficulty', 'description',
+               'inputFormat', 'outputFormat', 'constraints', 'examples',
+               'solutionExplanation', 'codeSolutions', 'tags', 'youtubeVideoId', 'updatedAt'
+             ]) &&
+             d.id == problemId &&
+             isBoundedString(d.id, 1, 100) &&
+             isNonNegativeNumber(d.dayNumber, 10000) &&
+             isBoundedString(d.date, 1, 100) &&
+             isBoundedString(d.title, 1, 300) &&
+             isBoundedString(d.slug, 1, 150) &&
+             isBoundedString(d.difficulty, 1, 50) &&
+             isBoundedString(d.description, 1, 15000) &&
+             isBoundedString(d.inputFormat, 0, 5000) &&
+             isBoundedString(d.outputFormat, 0, 5000) &&
+             isBoundedList(d.constraints, 0, 50) &&
+             isBoundedList(d.examples, 0, 30) &&
+             isBoundedString(d.solutionExplanation, 0, 30000) &&
+             isBoundedList(d.codeSolutions, 0, 30) &&
+             isBoundedList(d.tags, 0, 50) &&
+             (!('youtubeVideoId' in d) || isBoundedString(d.youtubeVideoId, 0, 100)) &&
+             (!('updatedAt' in d) || isNonNegativeNumber(d.updatedAt, 10000000000000));
+    }
+
+    function isValidOpportunity(opportunityId) {
+      let d = request.resource.data;
+      return d.keys().hasAll([
+               'id', 'title', 'slug', 'company', 'logo', 'category', 'type',
+               'description', 'eligibility', 'benefits', 'deadline', 'officialUrl',
+               'status', 'featured', 'postedDate', 'clicksCount'
+             ]) &&
+             d.keys().hasOnly([
+               'id', 'title', 'slug', 'company', 'logo', 'category', 'type',
+               'description', 'eligibility', 'benefits', 'deadline', 'officialUrl',
+               'status', 'featured', 'postedDate', 'clicksCount', 'location', 'updatedAt'
+             ]) &&
+             d.id == opportunityId &&
+             isBoundedString(d.id, 1, 100) &&
+             isBoundedString(d.title, 1, 300) &&
+             isBoundedString(d.slug, 1, 150) &&
+             isBoundedString(d.company, 1, 150) &&
+             isBoundedString(d.logo, 1, 1000) &&
+             isBoundedString(d.category, 1, 100) &&
+             isBoundedString(d.type, 1, 50) &&
+             isBoundedString(d.description, 1, 15000) &&
+             isBoundedString(d.eligibility, 0, 5000) &&
+             isBoundedList(d.benefits, 0, 50) &&
+             isBoundedString(d.deadline, 1, 100) &&
+             isBoundedString(d.officialUrl, 1, 1000) &&
+             isBoundedString(d.status, 1, 50) &&
+             d.featured is bool &&
+             isBoundedString(d.postedDate, 1, 100) &&
+             isNonNegativeNumber(d.clicksCount, 10000000) &&
+             (!('location' in d) || isBoundedString(d.location, 0, 200)) &&
+             (!('updatedAt' in d) || isNonNegativeNumber(d.updatedAt, 10000000000000));
+    }
+
+    function isValidSwag(swagId) {
+      let d = request.resource.data;
+      return d.keys().hasAll([
+               'id', 'title', 'brand', 'category', 'imageUrl', 'description',
+               'eligibility', 'howToClaim', 'campaignStartDate', 'campaignEndDate',
+               'officialSourceUrl', 'status', 'featured'
+             ]) &&
+             d.keys().hasOnly([
+               'id', 'title', 'brand', 'category', 'imageUrl', 'description',
+               'eligibility', 'howToClaim', 'campaignStartDate', 'campaignEndDate',
+               'officialSourceUrl', 'status', 'featured', 'tierRequired',
+               'pointsRequired', 'revealedDate', 'tierTags', 'updatedAt'
+             ]) &&
+             d.id == swagId &&
+             isBoundedString(d.id, 1, 100) &&
+             isBoundedString(d.title, 1, 300) &&
+             isBoundedString(d.brand, 1, 100) &&
+             isBoundedString(d.category, 1, 100) &&
+             isBoundedString(d.imageUrl, 1, 1000) &&
+             isBoundedString(d.description, 0, 15000) &&
+             isBoundedString(d.eligibility, 0, 5000) &&
+             isBoundedList(d.howToClaim, 0, 50) &&
+             isBoundedString(d.campaignStartDate, 1, 100) &&
+             isBoundedString(d.campaignEndDate, 1, 100) &&
+             isBoundedString(d.officialSourceUrl, 1, 1000) &&
+             isBoundedString(d.status, 1, 50) &&
+             d.featured is bool &&
+             (!('tierRequired' in d) || isBoundedString(d.tierRequired, 0, 200)) &&
+             (!('pointsRequired' in d) || isNonNegativeNumber(d.pointsRequired, 10000)) &&
+             (!('revealedDate' in d) || isBoundedString(d.revealedDate, 0, 100)) &&
+             (!('tierTags' in d) || isBoundedList(d.tierTags, 0, 10)) &&
+             (!('updatedAt' in d) || isNonNegativeNumber(d.updatedAt, 10000000000000));
+    }
+
+    function isValidCLesson(lessonId) {
+      let d = request.resource.data;
+      return d.keys().hasAll([
+               'id', 'dayNumber', 'title', 'slug', 'summary', 'durationMinutes',
+               'content', 'codeSnippet', 'expectedOutput', 'youtubeVideoId',
+               'practiceQuestions', 'quiz', 'isPublished'
+             ]) &&
+             d.keys().hasOnly([
+               'id', 'dayNumber', 'title', 'slug', 'summary', 'durationMinutes',
+               'content', 'codeSnippet', 'expectedOutput', 'youtubeVideoId',
+               'practiceQuestions', 'quiz', 'isPublished', 'updatedAt'
+             ]) &&
+             d.id == lessonId &&
+             isBoundedString(d.id, 1, 100) &&
+             isNonNegativeNumber(d.dayNumber, 10000) &&
+             isBoundedString(d.title, 1, 300) &&
+             isBoundedString(d.slug, 1, 150) &&
+             isBoundedString(d.summary, 1, 3000) &&
+             isNonNegativeNumber(d.durationMinutes, 10000) &&
+             isBoundedString(d.content, 1, 100000) &&
+             isBoundedString(d.codeSnippet, 0, 50000) &&
+             isBoundedString(d.expectedOutput, 0, 20000) &&
+             isBoundedString(d.youtubeVideoId, 0, 100) &&
+             isBoundedList(d.practiceQuestions, 0, 50) &&
+             isBoundedList(d.quiz, 0, 50) &&
+             d.isPublished is bool &&
+             (!('updatedAt' in d) || isNonNegativeNumber(d.updatedAt, 10000000000000));
+    }
+
+    function isValidResource(resourceId) {
+      let d = request.resource.data;
+      return d.keys().hasAll([
+               'id', 'title', 'description', 'category', 'format', 'fileSize',
+               'downloadUrl', 'previewImageUrl', 'tags', 'downloadsCount', 'publishedDate'
+             ]) &&
+             d.keys().hasOnly([
+               'id', 'title', 'description', 'category', 'format', 'fileSize',
+               'downloadUrl', 'previewImageUrl', 'tags', 'downloadsCount', 'publishedDate', 'updatedAt'
+             ]) &&
+             d.id == resourceId &&
+             isBoundedString(d.id, 1, 100) &&
+             isBoundedString(d.title, 1, 300) &&
+             isBoundedString(d.description, 1, 15000) &&
+             isBoundedString(d.category, 1, 100) &&
+             isBoundedString(d.format, 1, 50) &&
+             isBoundedString(d.fileSize, 1, 50) &&
+             isBoundedString(d.downloadUrl, 1, 1000) &&
+             isBoundedString(d.previewImageUrl, 1, 1000) &&
+             isBoundedList(d.tags, 0, 50) &&
+             isNonNegativeNumber(d.downloadsCount, 10000000) &&
+             isBoundedString(d.publishedDate, 1, 100) &&
+             (!('updatedAt' in d) || isNonNegativeNumber(d.updatedAt, 10000000000000));
+    }
+
+    function isValidSiteSettings() {
+      let d = request.resource.data;
+      return d.keys().hasAll(['brandName', 'creatorName', 'adminEmail', 'socialLinks', 'statistics']) &&
+             d.keys().hasOnly([
+               'brandName', 'tagline', 'creatorName', 'creatorTitle', 'creatorBio',
+               'creatorAvatarUrl', 'adminEmail', 'socialLinks', 'statistics',
+               'announcement', 'adsConfig', 'updatedAt'
+             ]) &&
+             isBoundedString(d.brandName, 1, 100) &&
+             isBoundedString(d.creatorName, 1, 100) &&
+             isBoundedString(d.adminEmail, 1, 150) &&
+             d.socialLinks is map && d.socialLinks.size() <= 20 &&
+             d.statistics is map && d.statistics.size() <= 20 &&
+             (!('tagline' in d) || isBoundedString(d.tagline, 0, 300)) &&
+             (!('creatorTitle' in d) || isBoundedString(d.creatorTitle, 0, 300)) &&
+             (!('creatorBio' in d) || isBoundedString(d.creatorBio, 0, 3000)) &&
+             (!('creatorAvatarUrl' in d) || isBoundedString(d.creatorAvatarUrl, 0, 1000)) &&
+             (!('announcement' in d) || (d.announcement is map && d.announcement.size() <= 10)) &&
+             (!('adsConfig' in d) || (d.adsConfig is map && d.adsConfig.size() <= 10)) &&
+             (!('updatedAt' in d) || isNonNegativeNumber(d.updatedAt, 10000000000000));
+    }
+
+    function isValidArcadeCalculatorConfig() {
+      let d = request.resource.data;
+      return d.keys().hasAll(['pointsPerSkillBadge', 'pointsPerTriviaGame', 'pointsPerLabCompletion', 'tiers']) &&
+             d.keys().hasOnly(['pointsPerSkillBadge', 'pointsPerTriviaGame', 'pointsPerLabCompletion', 'tiers', 'updatedAt']) &&
+             isNonNegativeNumber(d.pointsPerSkillBadge, 1000) &&
+             isNonNegativeNumber(d.pointsPerTriviaGame, 1000) &&
+             isNonNegativeNumber(d.pointsPerLabCompletion, 1000) &&
+             isBoundedList(d.tiers, 0, 20) &&
+             (!('updatedAt' in d) || isNonNegativeNumber(d.updatedAt, 10000000000000));
+    }
+
+    function isValidYouTubeFeed() {
+      let d = request.resource.data;
+      return d.keys().hasOnly(['videos', 'lastUpdated', 'updatedAt']) &&
+             ('videos' in d) &&
+             isBoundedList(d.videos, 0, 200) &&
+             (!('lastUpdated' in d) || isBoundedString(d.lastUpdated, 0, 100)) &&
+             (!('updatedAt' in d) || isNonNegativeNumber(d.updatedAt, 10000000000000));
+    }
+
+    function isValidConfigHealthProbe() {
+      let d = request.resource.data;
+      return d.keys().hasOnly(['lastCheck', 'status']) &&
+             (!('status' in d) || isBoundedString(d.status, 0, 50)) &&
+             (!('lastCheck' in d) || isBoundedString(d.lastCheck, 0, 100));
+    }
+
+    function isValidAppConfig(configId) {
+      return (configId == 'siteSettings' && isValidSiteSettings()) ||
+             (configId == 'arcadeCalculatorConfig' && isValidArcadeCalculatorConfig()) ||
+             (configId == 'youtubeFeed' && isValidYouTubeFeed()) ||
+             (configId == 'healthCheck' && isValidConfigHealthProbe());
+    }
+
+    function isValidLeaderboardUser() {
+      let d = request.resource.data;
+      return d.keys().hasAll(['rank', 'displayName', 'points', 'badgesCount', 'avatar', 'tier', 'streakDays']) &&
+             d.keys().hasOnly(['id', 'userId', 'rank', 'displayName', 'points', 'badgesCount', 'avatar', 'tier', 'streakDays', 'updatedAt']) &&
+             isNonNegativeNumber(d.rank, 1000000) &&
+             isBoundedString(d.displayName, 1, 100) &&
+             isNonNegativeNumber(d.points, 1000000) &&
+             isNonNegativeNumber(d.badgesCount, 100000) &&
+             isBoundedString(d.avatar, 0, 1000) &&
+             isBoundedString(d.tier, 1, 100) &&
+             isNonNegativeNumber(d.streakDays, 100000) &&
+             (!('id' in d) || isBoundedString(d.id, 1, 100)) &&
+             (!('userId' in d) || isBoundedString(d.userId, 1, 100)) &&
+             (!('updatedAt' in d) || isNonNegativeNumber(d.updatedAt, 10000000000000));
+    }
+
+    function isValidVisitorEvent(eventId) {
+      let d = request.resource.data;
+      return d.keys().hasAll(['id', 'timestamp', 'type', 'device', 'path']) &&
+             d.keys().hasOnly(['id', 'timestamp', 'type', 'device', 'path', 'userHash']) &&
+             d.id == eventId &&
+             isBoundedString(d.id, 1, 100) &&
+             isBoundedString(d.timestamp, 1, 100) &&
+             isBoundedString(d.type, 1, 50) &&
+             isBoundedString(d.device, 1, 50) &&
+             isBoundedString(d.path, 1, 500) &&
+             (!('userHash' in d) || isBoundedString(d.userHash, 0, 100));
+    }
+
+    function isValidYouTubeClick(clickId) {
+      let d = request.resource.data;
+      return d.keys().hasAll(['id', 'timestamp', 'videoId']) &&
+             d.keys().hasOnly(['id', 'timestamp', 'videoId', 'userHash', 'videoTitle', 'pagePath']) &&
+             d.id == clickId &&
+             isBoundedString(d.id, 1, 100) &&
+             isBoundedString(d.timestamp, 1, 100) &&
+             isBoundedString(d.videoId, 1, 50) &&
+             (!('userHash' in d) || isBoundedString(d.userHash, 0, 100)) &&
+             (!('videoTitle' in d) || isBoundedString(d.videoTitle, 0, 200)) &&
+             (!('pagePath' in d) || isBoundedString(d.pagePath, 0, 500));
+    }
+
+    function isValidHealthProbe(probeId) {
+      let d = request.resource.data;
+      return d.keys().hasOnly(['lastCheck', 'status']) &&
+             isBoundedString(probeId, 1, 50) &&
+             (!('status' in d) || isBoundedString(d.status, 0, 50)) &&
+             (!('lastCheck' in d) || isBoundedString(d.lastCheck, 0, 100));
+    }
+
+    // ===============================================================
+    // Rules Definition per Collection
+    // ===============================================================
+
+    // 1. Technical & Program Blogs
+    match /blogs/{blogId} {
+      allow read: if true;
+      allow create: if isValidBlog(blogId);
+      allow update: if isValidBlog(blogId) && request.resource.data.id == resource.data.id;
+      allow delete: if true;
+    }
+
+    // 2. Google Cloud Arcade Lab Solutions
+    match /arcadeSolutions/{solutionId} {
+      allow read: if true;
+      allow create: if isValidArcadeSolution(solutionId);
+      allow update: if isValidArcadeSolution(solutionId) && request.resource.data.id == resource.data.id;
+      allow delete: if true;
+    }
+
+    // 3. Unstop Problem of the Day
+    match /unstopProblems/{problemId} {
+      allow read: if true;
+      allow create: if isValidUnstopProblem(problemId);
+      allow update: if isValidUnstopProblem(problemId) && request.resource.data.id == resource.data.id;
+      allow delete: if true;
+    }
+
+    // 4. Student Programs & Opportunities
+    match /opportunities/{opportunityId} {
+      allow read: if true;
+      allow create: if isValidOpportunity(opportunityId);
+      allow update: if isValidOpportunity(opportunityId) && request.resource.data.id == resource.data.id;
+      allow delete: if true;
+    }
+
+    // 5. Tech Swags & Goodies
+    match /swags/{swagId} {
+      allow read: if true;
+      allow create: if isValidSwag(swagId);
+      allow update: if isValidSwag(swagId) && request.resource.data.id == resource.data.id;
+      allow delete: if true;
+    }
+
+    // 6. C Academy Masterclass Lectures
+    match /cLessons/{lessonId} {
+      allow read: if true;
+      allow create: if isValidCLesson(lessonId);
+      allow update: if isValidCLesson(lessonId) && request.resource.data.id == resource.data.id;
+      allow delete: if true;
+    }
+
+    // 7. Study Resources & Cheat Sheets
+    match /resources/{resourceId} {
+      allow read: if true;
+      allow create: if isValidResource(resourceId);
+      allow update: if isValidResource(resourceId) && request.resource.data.id == resource.data.id;
+      allow delete: if true;
+    }
+
+    // 8. Platform System Configuration (siteSettings, arcadeCalculatorConfig, youtubeFeed, healthCheck)
+    match /appConfig/{configId} {
+      allow read: if true;
+      allow create, update: if isValidAppConfig(configId);
+      allow delete: if false;
+    }
+
+    // 9. Public Leaderboard
+    match /leaderboard/{userId} {
+      allow read: if true;
+      allow create, update: if isValidLeaderboardUser();
+      allow delete: if true;
+    }
+
+    // 10. Visitor Analytics Telemetry (Public write logging only)
+    match /visitorEvents/{eventId} {
+      allow read: if false;
+      allow create: if isValidVisitorEvent(eventId);
+      allow update, delete: if false;
+    }
+
+    // 11. YouTube Video Click Telemetry (Public write logging only)
+    match /youtubeClicks/{clickId} {
+      allow read: if false;
+      allow create: if isValidYouTubeClick(clickId);
+      allow update, delete: if false;
+    }
+
+    // 12. Health Check Probe for Admin Dashboard
+    match /_healthCheck/{probeId} {
+      allow read: if true;
+      allow create, update: if isValidHealthProbe(probeId);
+      allow delete: if true;
+    }
+
+    // Default catch-all (strictly deny all reads and writes to any unlisted paths)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
