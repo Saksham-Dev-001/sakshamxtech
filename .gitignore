@@ -30,3 +30,5 @@ Thumbs.db
 # Temporary and caches
 .eslintcache
 *.tmp
+.aistudio/
+

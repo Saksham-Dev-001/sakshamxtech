@@ -985,7 +985,7 @@ C is the foundational language of computing. In this complete guide, Saksham Sha
     author: {
       name: 'Saksham Sharma',
       role: 'Founder of SakshamXTech',
-      avatar: '/assets/aistudio/file_00000000539c820792579291e97b0d13_1673057a.png',
+      avatar: '/assets/branding/saksham_avatar.png',
     },
     publishedAt: '2026-10-30',
     readTimeMinutes: 8,
@@ -1024,7 +1024,7 @@ Always run verification checks inside Qwiklabs after each task. Ensure your envi
     author: {
       name: 'Saksham Sharma',
       role: 'Founder of SakshamXTech',
-      avatar: '/assets/aistudio/file_00000000539c820792579291e97b0d13_1673057a.png',
+      avatar: '/assets/branding/saksham_avatar.png',
     },
     publishedAt: '2026-10-24',
     readTimeMinutes: 9,
@@ -1055,7 +1055,7 @@ Every C executable is loaded into a virtual memory segment containing:
     author: {
       name: 'Saksham Sharma',
       role: 'Founder of SakshamXTech',
-      avatar: '/assets/aistudio/file_00000000539c820792579291e97b0d13_1673057a.png',
+      avatar: '/assets/branding/saksham_avatar.png',
     },
     publishedAt: '2026-10-20',
     readTimeMinutes: 7,
