@@ -49,18 +49,18 @@ export const Footer: React.FC<FooterProps> = ({ navigate }) => {
               onClick={() => navigate('/')} 
               className="flex items-center gap-3 cursor-pointer group inline-flex"
             >
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 via-indigo-600 to-purple-600 p-[1.5px] shadow-lg shadow-cyan-500/10 shrink-0">
-                <div className="w-full h-full bg-slate-950 rounded-[10px] overflow-hidden flex items-center justify-center font-black text-cyan-400 text-sm relative">
-                  <img
-                    src={siteSettings.creatorAvatarUrl || '/assets/branding/saksham_avatar.png'}
-                    alt="SakshamXTech Logo"
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLElement).style.display = 'none';
-                    }}
-                  />
-                  <span className="font-black text-cyan-400 text-sm select-none">SX</span>
-                </div>
+              <div className="w-11 h-11 rounded-xl overflow-hidden border border-cyan-500/40 shadow-lg shadow-cyan-500/20 bg-slate-900 shrink-0 group-hover:scale-105 transition-all">
+                <img
+                  src={siteSettings.creatorAvatarUrl || '/assets/branding/saksham_avatar.png'}
+                  alt="SakshamXTech Logo"
+                  className="w-full h-full object-cover rounded-xl"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    if (target.src !== window.location.origin + '/assets/branding/saksham_avatar.png') {
+                      target.src = '/assets/branding/saksham_avatar.png';
+                    }
+                  }}
+                />
               </div>
               <div>
                 <span className="font-extrabold text-xl text-white tracking-tight">

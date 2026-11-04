@@ -321,19 +321,29 @@ export const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
                     src="/assets/branding/saksham_portrait.png"
                     alt="Saksham Sharma - Founder SakshamXTech"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = '/assets/branding/saksham_avatar.png';
+                    }}
                   />
                   {/* Subtle overlay gradient */}
                   <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-slate-950/60 to-transparent pointer-events-none" />
                 </div>
 
-                {/* Floating SX Gaming Laptop Graphic (Bottom Right) */}
-                <div className="absolute -bottom-2 -right-4 sm:right-0 z-20 p-2.5 rounded-2xl bg-white/95 dark:bg-slate-900/95 shadow-2xl border border-slate-100 dark:border-slate-800 flex items-center gap-2">
-                  <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-white font-black italic text-xs shadow-md shadow-blue-500/20">
-                    SX
+                {/* Floating SX Badge (Bottom Right) */}
+                <div className="absolute -bottom-2 -right-4 sm:right-0 z-20 p-2.5 rounded-2xl bg-white/95 dark:bg-slate-900/95 shadow-2xl border border-slate-100 dark:border-slate-800 flex items-center gap-2.5">
+                  <div className="w-10 h-10 rounded-xl overflow-hidden border border-blue-500/30 shadow-md shadow-blue-500/20 bg-slate-900 shrink-0">
+                    <img
+                      src="/assets/branding/saksham_avatar.png"
+                      alt="SakshamXTech Logo"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/assets/branding/saksham_portrait.png';
+                      }}
+                    />
                   </div>
                   <div>
-                    <span className="text-[11px] font-bold text-slate-900 dark:text-white block">Tech & Cloud</span>
-                    <span className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold">Ready to Code</span>
+                    <span className="text-[11px] font-bold text-slate-900 dark:text-white block">SakshamXTech</span>
+                    <span className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold">Official Platform</span>
                   </div>
                 </div>
 
