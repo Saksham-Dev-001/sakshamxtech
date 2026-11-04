@@ -116,9 +116,12 @@ export const AboutPage: React.FC<AboutPageProps> = ({ navigate }) => {
           <div className="relative shrink-0">
             <div className="relative w-48 h-48 sm:w-56 sm:h-56 rounded-3xl overflow-hidden border-2 border-red-500 dark:border-red-400 shadow-xl shadow-red-500/20 bg-slate-900">
               <img
-                src={siteSettings.creatorAvatarUrl}
+                src={siteSettings.creatorAvatarUrl || '/assets/branding/saksham_avatar.png'}
                 alt={siteSettings.creatorName}
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = '/assets/branding/saksham_avatar.png';
+                }}
               />
             </div>
             <div className="absolute -bottom-2 -right-2 px-3 py-1 rounded-full bg-gradient-to-r from-red-600 to-rose-600 text-white font-black text-xs shadow-lg flex items-center gap-1 border border-white/20">

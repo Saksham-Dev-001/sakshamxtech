@@ -49,9 +49,17 @@ export const Footer: React.FC<FooterProps> = ({ navigate }) => {
               onClick={() => navigate('/')} 
               className="flex items-center gap-3 cursor-pointer group inline-flex"
             >
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 via-indigo-600 to-purple-600 p-[1.5px] shadow-lg shadow-cyan-500/10">
-                <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center font-black text-cyan-400 text-sm">
-                  SX
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 via-indigo-600 to-purple-600 p-[1.5px] shadow-lg shadow-cyan-500/10 shrink-0">
+                <div className="w-full h-full bg-slate-950 rounded-[10px] overflow-hidden flex items-center justify-center font-black text-cyan-400 text-sm relative">
+                  <img
+                    src={siteSettings.creatorAvatarUrl || '/assets/branding/saksham_avatar.png'}
+                    alt="SakshamXTech Logo"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLElement).style.display = 'none';
+                    }}
+                  />
+                  <span className="font-black text-cyan-400 text-sm select-none">SX</span>
                 </div>
               </div>
               <div>

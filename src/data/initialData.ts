@@ -20,7 +20,7 @@ export const initialSiteSettings: SiteSettings = {
   creatorName: 'Saksham Sharma',
   creatorTitle: 'Founder of SakshamXTech | Cloud Architect & Tech Content Creator',
   creatorBio: 'Passionate developer and Google Developer community member empowering 50,000+ students with Google Cloud Arcade solutions, daily Unstop POTD walkthroughs, in-depth C Academy lectures, and verified swag opportunities.',
-  creatorAvatarUrl: '/assets/branding/saksham_portrait.png',
+  creatorAvatarUrl: '/assets/branding/saksham_avatar.png',
   adminEmail: 'hutch.saksham@gmail.com',
   socialLinks: {
     youtube: 'https://youtube.com/@sakshamxtech',

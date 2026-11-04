@@ -2801,9 +2801,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigate }) => {
                 <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">Creator Portrait Image (Homepage & About)</span>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                   <img
-                    src={settingsForm.creatorAvatarUrl}
+                    src={settingsForm.creatorAvatarUrl || '/assets/branding/saksham_avatar.png'}
                     alt={settingsForm.creatorName}
                     className="w-16 h-16 rounded-2xl object-cover border-2 border-blue-500 shadow-md shrink-0"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = '/assets/branding/saksham_avatar.png';
+                    }}
                   />
                   <div className="flex-1 space-y-2">
                     <input

@@ -326,9 +326,12 @@ export const BlogsPage: React.FC<BlogsPageProps> = ({ navigate }) => {
               <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                   <img
-                    src={featuredArticle.author?.avatar || siteSettings.creatorAvatarUrl}
+                    src={featuredArticle.author?.avatar || siteSettings.creatorAvatarUrl || '/assets/branding/saksham_avatar.png'}
                     alt={featuredArticle.author?.name || siteSettings.creatorName}
                     className="w-9 h-9 rounded-full object-cover border border-slate-200 dark:border-slate-700"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = '/assets/branding/saksham_avatar.png';
+                    }}
                   />
                   <div>
                     <h4 className="text-xs font-bold text-slate-900 dark:text-white">

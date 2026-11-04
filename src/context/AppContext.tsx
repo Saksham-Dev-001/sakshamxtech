@@ -139,6 +139,13 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 const PREFIX = 'sakshamxtech_db_';
 
+const sanitizeAvatarUrl = (url?: string): string => {
+  if (!url || url.includes('unsplash') || url.includes('file_00000000') || url.includes('/assets/aistudio/')) {
+    return '/assets/branding/saksham_avatar.png';
+  }
+  return url;
+};
+
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Initialize state with local storage fallback
   const [siteSettings, setSiteSettings] = useState<SiteSettings>(() => {
@@ -146,9 +153,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (!parsed.creatorAvatarUrl || parsed.creatorAvatarUrl.includes('unsplash')) {
-          parsed.creatorAvatarUrl = initialSiteSettings.creatorAvatarUrl;
-        }
+        parsed.creatorAvatarUrl = sanitizeAvatarUrl(parsed.creatorAvatarUrl);
         return parsed;
       } catch (e) {
         return initialSiteSettings;
@@ -529,8 +534,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           if (!cloudSettings && forceSeedIfEmpty) {
             await saveDocToFirestore('appConfig', 'siteSettings', siteSettings || initialSiteSettings);
           } else if (cloudSettings) {
-            setSiteSettings(cloudSettings);
-            try { localStorage.setItem(`${PREFIX}settings`, JSON.stringify(cloudSettings)); } catch {}
+            const sanitized: SiteSettings = {
+              ...cloudSettings,
+              creatorAvatarUrl: sanitizeAvatarUrl(cloudSettings.creatorAvatarUrl),
+            };
+            setSiteSettings(sanitized);
+            try { localStorage.setItem(`${PREFIX}settings`, JSON.stringify(sanitized)); } catch {}
+            if (cloudSettings.creatorAvatarUrl !== sanitized.creatorAvatarUrl) {
+              saveDocToFirestore('appConfig', 'siteSettings', sanitized).catch(() => {});
+            }
           }
         })(),
         // Arcade Calculator Config
@@ -684,9 +696,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // Real-time listener for Site Settings
       const unsubCfg = subscribeToDoc<SiteSettings>('appConfig', 'siteSettings', (data) => {
         if (data) {
-          setSiteSettings(data);
+          const sanitized: SiteSettings = {
+            ...data,
+            creatorAvatarUrl: sanitizeAvatarUrl(data.creatorAvatarUrl),
+          };
+          setSiteSettings(sanitized);
           try {
-            localStorage.setItem(`${PREFIX}settings`, JSON.stringify(data));
+            localStorage.setItem(`${PREFIX}settings`, JSON.stringify(sanitized));
           } catch {}
           setLastCloudSyncTime(new Date().toLocaleTimeString('en-US'));
         }

@@ -253,9 +253,12 @@ export const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ slug, navigate }
           <div className="flex items-center gap-3">
             <div className="relative">
               <img
-                src={blog.author?.avatar || siteSettings.creatorAvatarUrl}
+                src={blog.author?.avatar || siteSettings.creatorAvatarUrl || '/assets/branding/saksham_avatar.png'}
                 alt={blog.author?.name || siteSettings.creatorName}
                 className="w-11 h-11 rounded-2xl object-cover border-2 border-blue-500/40 shadow-sm"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = '/assets/branding/saksham_avatar.png';
+                }}
               />
               <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-blue-600 text-white flex items-center justify-center text-[9px] shadow-xs">
                 ✓
@@ -457,9 +460,12 @@ export const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ slug, navigate }
       <div className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-sm">
         <div className="flex items-center gap-4 text-center sm:text-left">
           <img
-            src={siteSettings.creatorAvatarUrl}
+            src={siteSettings.creatorAvatarUrl || '/assets/branding/saksham_avatar.png'}
             alt={siteSettings.creatorName}
             className="w-16 h-16 rounded-2xl object-cover border-2 border-red-500 shadow-md shrink-0"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = '/assets/branding/saksham_avatar.png';
+            }}
           />
           <div>
             <h4 className="text-sm sm:text-base font-black text-slate-900 dark:text-white flex items-center gap-1.5 justify-center sm:justify-start">

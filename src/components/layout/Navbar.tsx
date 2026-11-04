@@ -97,9 +97,17 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPath, navigate, openSearc
             className="flex items-center gap-2.5 cursor-pointer group shrink-0 select-none"
             title="SakshamXTech Home"
           >
-            {/* SX Monogram Badge */}
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500 via-blue-600 to-indigo-600 flex items-center justify-center shadow-md shadow-blue-500/25 text-white font-black italic tracking-tighter text-base group-hover:scale-105 group-hover:shadow-blue-500/40 transition-all duration-200">
-              SX
+            {/* SX Monogram Badge with Creator Logo */}
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500 via-blue-600 to-indigo-600 flex items-center justify-center shadow-md shadow-blue-500/25 text-white font-black italic tracking-tighter text-base group-hover:scale-105 group-hover:shadow-blue-500/40 transition-all duration-200 overflow-hidden relative border border-blue-400/30">
+              <img
+                src={siteSettings.creatorAvatarUrl || '/assets/branding/saksham_avatar.png'}
+                alt="SX Logo"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  (e.target as HTMLElement).style.display = 'none';
+                }}
+              />
+              <span className="font-black italic text-sm text-white select-none">SX</span>
             </div>
 
             <div className="flex items-center">
