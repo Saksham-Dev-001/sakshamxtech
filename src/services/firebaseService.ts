@@ -38,16 +38,16 @@ export interface FirebaseConfig {
 // Default Firebase Configuration (reads from Vite env or local config)
 export const getActiveFirebaseConfig = (): FirebaseConfig | null => {
   const envKey = import.meta.env.VITE_FIREBASE_API_KEY;
-  const envProjectId = import.meta.env.VITE_FIREBASE_PROJECT_ID;
+  const envProjectId = import.meta.env.VITE_FIREBASE_PROJECT_ID || 'sakshamxtech-7fe06';
 
-  if (envKey && envProjectId) {
+  if (envKey) {
     return {
       apiKey: envKey,
       authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || `${envProjectId}.firebaseapp.com`,
       projectId: envProjectId,
       storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || `${envProjectId}.appspot.com`,
-      messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '',
-      appId: import.meta.env.VITE_FIREBASE_APP_ID || '',
+      messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '500868127820',
+      appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:500868127820:web:09c7460094468c3236e8e9',
     };
   }
 
