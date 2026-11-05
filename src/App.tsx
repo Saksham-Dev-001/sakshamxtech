@@ -34,14 +34,19 @@ import { NotFoundPage } from './pages/NotFoundPage';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { SecretGateModal } from './components/shared/SecretGateModal';
 import { ErrorBoundary } from './components/shared/ErrorBoundary';
+import { initOneSignal } from './services/oneSignalService';
 
 function AppContent() {
-  const { trackEvent, theme } = useApp();
+  const { siteSettings, trackEvent, theme } = useApp();
   const { isAdmin } = useAuth();
   const [currentPath, setCurrentPath] = useState<string>(() => {
     return window.location.pathname || '/';
   });
   const [searchModalOpen, setSearchModalOpen] = useState(false);
+
+  useEffect(() => {
+    initOneSignal(siteSettings.oneSignalAppId);
+  }, [siteSettings.oneSignalAppId]);
 
   useEffect(() => {
     trackEvent('pageView', window.location.pathname || '/');

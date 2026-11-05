@@ -18,12 +18,14 @@ import {
   ChevronRight,
   User,
   Home,
-  Download
+  Download,
+  CheckCircle2
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { usePWAInstall } from '../../hooks/usePWAInstall';
 import { PWAInstallModal } from '../shared/PWAInstallModal';
+import { requestPushPermission, getPushPermissionState } from '../../services/oneSignalService';
 
 interface NavbarProps {
   currentPath: string;
@@ -39,6 +41,8 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPath, navigate, openSearc
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [showNotificationToast, setShowNotificationToast] = useState(false);
+  const [pushState, setPushState] = useState<'default' | 'granted' | 'denied' | 'unsupported'>('default');
+  const notificationRef = useRef<HTMLDivElement | null>(null);
 
   const handleInstallClick = async () => {
     const outcome = await promptInstall();
@@ -46,6 +50,28 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPath, navigate, openSearc
       setInstallModalOpen(true);
     }
   };
+
+  const handleEnablePush = async () => {
+    const granted = await requestPushPermission();
+    setPushState(granted ? 'granted' : getPushPermissionState());
+  };
+
+  useEffect(() => {
+    if (showNotificationToast) {
+      setPushState(getPushPermissionState());
+    }
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (notificationRef.current && !notificationRef.current.contains(e.target as Node)) {
+        setShowNotificationToast(false);
+      }
+    };
+
+    if (showNotificationToast) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showNotificationToast]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -180,14 +206,82 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPath, navigate, openSearc
 
               {/* Notification Popover */}
               {showNotificationToast && (
-                <div className="absolute right-0 mt-2 w-72 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl p-3 z-50 text-xs text-slate-800 dark:text-slate-200 animate-in fade-in zoom-in-95">
-                  <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100 dark:border-slate-800">
-                    <span className="font-bold text-slate-900 dark:text-white">Arcade 2026 Season</span>
-                    <span className="text-[10px] text-blue-600 font-bold">New</span>
+                <div 
+                  ref={notificationRef}
+                  className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-4 z-50 text-xs text-slate-800 dark:text-slate-200 animate-in fade-in zoom-in-95 space-y-3"
+                >
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+                    <span className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                      <Bell className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                      <span>Notifications &amp; Alerts</span>
+                    </span>
+                    <button
+                      onClick={() => setShowNotificationToast(false)}
+                      className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5 rounded-lg"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
                   </div>
-                  <p className="text-[11px] text-slate-600 dark:text-slate-400">
-                    Google Cloud Arcade 2026 is active! Calculate your points and claim free swags.
-                  </p>
+
+                  {/* Push Notifications Toggle Card */}
+                  <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80 space-y-2">
+                    {pushState === 'granted' ? (
+                      <div className="flex items-start gap-2.5">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-bold text-emerald-700 dark:text-emerald-400 text-[11px]">
+                            Push Notifications Active
+                          </p>
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                            You'll receive instant alerts on mobile when new Arcade solutions or swags drop!
+                          </p>
+                        </div>
+                      </div>
+                    ) : pushState === 'denied' ? (
+                      <div className="text-[11px] text-slate-600 dark:text-slate-400 space-y-1">
+                        <p className="font-bold text-amber-600 dark:text-amber-400">Notifications Blocked</p>
+                        <p className="text-[10px]">
+                          Unblock notifications in your browser settings to receive mobile alerts.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-blue-500 animate-ping shrink-0" />
+                          <span className="font-bold text-slate-900 dark:text-white text-[11px]">
+                            Get Instant Mobile Alerts
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                          Receive live notifications for new Google Cloud Arcade lab answers &amp; Unstop POTD solutions!
+                        </p>
+                        <button
+                          onClick={handleEnablePush}
+                          className="w-full py-1.5 px-3 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-[11px] rounded-lg shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                        >
+                          <Bell className="w-3 h-3" />
+                          <span>Turn On Notifications</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Recent Alert Item */}
+                  <div 
+                    onClick={() => {
+                      setShowNotificationToast(false);
+                      handleNavClick('/google-arcade');
+                    }}
+                    className="p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors cursor-pointer border border-transparent hover:border-slate-200 dark:hover:border-slate-800"
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-bold text-slate-900 dark:text-white text-[11px]">Arcade 2026 Season</span>
+                      <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 font-bold">New</span>
+                    </div>
+                    <p className="text-[10px] text-slate-600 dark:text-slate-400 leading-snug">
+                      Google Cloud Arcade 2026 is active! Calculate points, claim swags, and unlock facilitator badges.
+                    </p>
+                  </div>
                 </div>
               )}
             </div>

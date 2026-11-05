@@ -65,6 +65,10 @@ export const PWAInstallModal: React.FC<PWAInstallModalProps> = ({
             <CheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
             <span>Zero reload lag &amp; offline access to cached codes</span>
           </div>
+          <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-purple-50/70 dark:bg-purple-950/40 border border-purple-200/60 dark:border-purple-500/30 text-xs text-purple-900 dark:text-purple-200 font-medium">
+            <CheckCircle className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
+            <span>Lockscreen push alerts when new Arcade solutions &amp; swags drop</span>
+          </div>
         </div>
 
         {/* Install Actions */}

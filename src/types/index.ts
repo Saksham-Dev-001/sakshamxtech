@@ -237,6 +237,7 @@ export interface SiteSettings {
     inArticleBanner: boolean;
     adClient: string;
   };
+  oneSignalAppId?: string;
 }
 
 export interface AnalyticsMetric {

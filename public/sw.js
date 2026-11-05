@@ -1,3 +1,10 @@
+// OneSignal Web Push SDK Worker Integration (Must be synchronously loaded at the top)
+try {
+  importScripts('https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js');
+} catch (e) {
+  console.info('[SW] OneSignal worker offline or not available.');
+}
+
 const CACHE_NAME = 'sakshamxtech-v2';
 const STATIC_ASSETS = [
   '/manifest.json',
@@ -84,4 +91,24 @@ self.addEventListener('fetch', (event) => {
     );
     return;
   }
+});
+
+// 4. Notification Click: Open or focus window on notification tap
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const targetUrl = event.notification.data?.url || '/';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if (client.url.includes(self.location.origin) && 'focus' in client) {
+          client.navigate(targetUrl);
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl);
+      }
+    })
+  );
 });

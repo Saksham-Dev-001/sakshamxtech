@@ -42,7 +42,8 @@ import {
   Play,
   CheckCircle2,
   Activity,
-  Flame
+  Flame,
+  Bell
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useApp } from '../../context/AppContext';
@@ -2942,6 +2943,68 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigate }) => {
                   }
                   className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 outline-none"
                 />
+              </div>
+
+              {/* Push Notifications Configuration (OneSignal) */}
+              <div className="p-5 rounded-2xl bg-gradient-to-br from-indigo-50/70 to-blue-50/70 dark:from-indigo-950/30 dark:to-blue-950/30 border border-indigo-200/80 dark:border-indigo-800/80 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-indigo-100 dark:border-indigo-900/50">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 rounded-xl bg-blue-600 text-white shadow-sm shrink-0">
+                      <Bell className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <span>OneSignal Push Notifications</span>
+                        {settingsForm.oneSignalAppId ? (
+                          <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 font-bold text-[10px]">
+                            ● Configured
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 font-bold text-[10px]">
+                            ● App ID Needed
+                          </span>
+                        )}
+                      </h4>
+                      <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5">
+                        Broadcast instant mobile notifications to all users who installed the app or enabled alerts.
+                      </p>
+                    </div>
+                  </div>
+
+                  <a
+                    href="https://dashboard.onesignal.com"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all shrink-0 cursor-pointer"
+                  >
+                    <span>OneSignal Dashboard</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
+                    OneSignal App ID
+                  </label>
+                  <input
+                    type="text"
+                    value={settingsForm.oneSignalAppId || ''}
+                    onChange={(e) =>
+                      setSettingsForm({
+                        ...settingsForm,
+                        oneSignalAppId: e.target.value.trim(),
+                      })
+                    }
+                    placeholder="e.g. 12345678-abcd-ef01-2345-6789abcdef01"
+                    className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-slate-200 font-mono focus:ring-2 focus:ring-blue-500 outline-none"
+                  />
+                  <div className="p-3 rounded-xl bg-white/80 dark:bg-slate-900/80 border border-slate-200/60 dark:border-slate-800 text-[11px] text-slate-600 dark:text-slate-400 space-y-1">
+                    <p className="font-semibold text-slate-800 dark:text-slate-200">How to broadcast notifications in 3 steps:</p>
+                    <p>1. Create a free account at <strong>onesignal.com</strong>, select <strong>Web Push</strong>, and paste your <strong>App ID</strong> here.</p>
+                    <p>2. Click <strong>Save All Website Settings</strong> below. Users will now see the 1-click notification enable trigger.</p>
+                    <p>3. Whenever you want to alert users, go to <strong>OneSignal Dashboard &gt; Messages &gt; New Push</strong> to blast all mobile screens in 1 click!</p>
+                  </div>
+                </div>
               </div>
 
               <button
