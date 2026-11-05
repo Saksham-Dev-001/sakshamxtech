@@ -17,10 +17,13 @@ import {
   Bell,
   ChevronRight,
   User,
-  Home
+  Home,
+  Download
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
+import { usePWAInstall } from '../../hooks/usePWAInstall';
+import { PWAInstallModal } from '../shared/PWAInstallModal';
 
 interface NavbarProps {
   currentPath: string;
@@ -31,9 +34,18 @@ interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = ({ currentPath, navigate, openSearch }) => {
   const { siteSettings, theme, toggleTheme } = useApp();
   const { isAdmin } = useAuth();
+  const { isInstallable, isInstalled, promptInstall } = usePWAInstall();
+  const [installModalOpen, setInstallModalOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [showNotificationToast, setShowNotificationToast] = useState(false);
+
+  const handleInstallClick = async () => {
+    const outcome = await promptInstall();
+    if (outcome === 'manual') {
+      setInstallModalOpen(true);
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -180,6 +192,18 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPath, navigate, openSearc
               )}
             </div>
 
+            {/* Install App Button (Desktop) */}
+            {!isInstalled && (
+              <button
+                onClick={handleInstallClick}
+                className="hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-extrabold bg-blue-50 dark:bg-blue-950/70 border border-blue-200/80 dark:border-blue-500/30 text-blue-600 dark:text-blue-400 hover:bg-blue-600 hover:text-white transition-all shadow-xs cursor-pointer active:scale-95"
+                title="Install SakshamXTech App on your computer"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Install App</span>
+              </button>
+            )}
+
             {/* Dark/Light Toggle */}
             <button
               onClick={toggleTheme}
@@ -256,9 +280,34 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPath, navigate, openSearc
                 </button>
               );
             })}
+            {/* Mobile Dropdown Install App Banner */}
+            {!isInstalled && (
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  handleInstallClick();
+                }}
+                className="w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex items-center justify-between shadow-sm mt-3 mb-1 cursor-pointer"
+              >
+                <span className="flex items-center gap-2.5">
+                  <Download className="w-4 h-4" />
+                  <span>Install SakshamXTech App</span>
+                </span>
+                <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-black uppercase">Free</span>
+              </button>
+            )}
           </div>
         )}
       </header>
+
+      {/* PWA Install Guide Modal */}
+      <PWAInstallModal
+        isOpen={installModalOpen}
+        onClose={() => setInstallModalOpen(false)}
+        onInstall={promptInstall}
+        isInstallable={isInstallable}
+        isInstalled={isInstalled}
+      />
     </>
   );
 };

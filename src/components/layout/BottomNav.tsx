@@ -20,10 +20,13 @@ import {
   ShieldCheck, 
   ChevronRight,
   Flame,
-  ArrowUpRight
+  ArrowUpRight,
+  Download
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
+import { usePWAInstall } from '../../hooks/usePWAInstall';
+import { PWAInstallModal } from '../shared/PWAInstallModal';
 
 interface BottomNavProps {
   currentPath: string;
@@ -34,7 +37,17 @@ interface BottomNavProps {
 export const BottomNav: React.FC<BottomNavProps> = ({ currentPath, navigate, openSearch }) => {
   const { siteSettings, theme, toggleTheme, bookmarks } = useApp();
   const { isAdmin, logout } = useAuth();
+  const { isInstallable, isInstalled, promptInstall } = usePWAInstall();
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [installModalOpen, setInstallModalOpen] = useState(false);
+
+  const handleInstallClick = async () => {
+    setSheetOpen(false);
+    const outcome = await promptInstall();
+    if (outcome === 'manual') {
+      setInstallModalOpen(true);
+    }
+  };
 
   const mainTabs = [
     { label: 'Home', path: '/', icon: Home },
@@ -170,6 +183,35 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentPath, navigate, ope
               </button>
             </div>
 
+            {/* Downloadable App Banner */}
+            {!isInstalled && (
+              <button
+                onClick={handleInstallClick}
+                className="w-full p-3 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white flex items-center justify-between shadow-md shadow-blue-500/20 active:scale-[0.98] transition-all mobile-tap cursor-pointer"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-slate-950 p-1 flex items-center justify-center border border-white/20 shrink-0">
+                    <img
+                      src="/icon-192.png"
+                      alt="SakshamXTech App Icon"
+                      className="w-full h-full object-contain rounded-lg"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/favicon.png';
+                      }}
+                    />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-xs font-black leading-tight">Install SakshamXTech App</p>
+                    <p className="text-[10px] text-blue-100 font-medium">Add to phone home screen with official logo</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 bg-white/20 px-2.5 py-1 rounded-xl text-[10px] font-black uppercase shrink-0">
+                  <Download className="w-3 h-3" />
+                  <span>Install</span>
+                </div>
+              </button>
+            )}
+
             {/* Quick Action Top Bar: YouTube Live + Telegram */}
             <div className="grid grid-cols-2 gap-2.5">
               <a
@@ -265,6 +307,15 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentPath, navigate, ope
           </div>
         </div>
       )}
+
+      {/* PWA Install Guide Modal */}
+      <PWAInstallModal
+        isOpen={installModalOpen}
+        onClose={() => setInstallModalOpen(false)}
+        onInstall={promptInstall}
+        isInstallable={isInstallable}
+        isInstalled={isInstalled}
+      />
     </>
   );
 };
