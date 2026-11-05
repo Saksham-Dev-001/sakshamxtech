@@ -53,7 +53,7 @@ export const initialSiteSettings: SiteSettings = {
     inArticleBanner: false,
     adClient: 'ca-pub-0000000000000000',
   },
-  oneSignalAppId: (import.meta.env.VITE_ONESIGNAL_APP_ID as string) || '',
+  oneSignalAppId: (import.meta.env.VITE_ONESIGNAL_APP_ID as string) || 'd03de95e-6730-4d9c-94ab-503aadcc360d',
 };
 
 export const initialArcadeCalculatorConfig: ArcadeCalculatorConfig = {

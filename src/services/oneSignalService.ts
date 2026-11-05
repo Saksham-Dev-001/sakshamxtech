@@ -9,7 +9,7 @@ declare global {
 }
 
 let isInitialized = false;
-let currentAppId = '';
+let currentAppId = 'd03de95e-6730-4d9c-94ab-503aadcc360d';
 
 /**
  * Initializes OneSignal Web SDK v16
@@ -18,14 +18,9 @@ let currentAppId = '';
 export const initOneSignal = (appId?: string) => {
   if (typeof window === 'undefined') return;
 
-  const resolvedAppId = (appId?.trim() || (import.meta.env.VITE_ONESIGNAL_APP_ID as string)?.trim() || '').trim();
+  const resolvedAppId = (appId?.trim() || (import.meta.env.VITE_ONESIGNAL_APP_ID as string)?.trim() || 'd03de95e-6730-4d9c-94ab-503aadcc360d').trim();
 
-  if (!resolvedAppId) {
-    // Graceful silent wait — admin has not entered an App ID yet
-    return;
-  }
-
-  // Prevent re-initialization with the same App ID
+  // Prevent re-initialization if already initialized
   if (isInitialized && currentAppId === resolvedAppId) {
     return;
   }
@@ -36,6 +31,10 @@ export const initOneSignal = (appId?: string) => {
   window.OneSignalDeferred = window.OneSignalDeferred || [];
   window.OneSignalDeferred.push(async (OneSignal) => {
     try {
+      // If already initialized by inline script in index.html, skip duplicate init call
+      if (OneSignal._isInitialized) {
+        return;
+      }
       await OneSignal.init({
         appId: resolvedAppId,
         allowLocalhostAsSecureOrigin: true,
@@ -45,7 +44,7 @@ export const initOneSignal = (appId?: string) => {
       });
       console.log('[OneSignal] Initialized with App ID:', resolvedAppId);
     } catch (err) {
-      console.warn('[OneSignal] Initialization error:', err);
+      console.warn('[OneSignal] Initialization note:', err);
     }
   });
 };

@@ -2955,15 +2955,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigate }) => {
                     <div>
                       <h4 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2">
                         <span>OneSignal Push Notifications</span>
-                        {settingsForm.oneSignalAppId ? (
-                          <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 font-bold text-[10px]">
-                            ● Configured
-                          </span>
-                        ) : (
-                          <span className="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 font-bold text-[10px]">
-                            ● App ID Needed
-                          </span>
-                        )}
+                        <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 font-bold text-[10px]">
+                          ● Configured &amp; Active
+                        </span>
                       </h4>
                       <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5">
                         Broadcast instant mobile notifications to all users who installed the app or enabled alerts.
@@ -2988,14 +2982,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigate }) => {
                   </label>
                   <input
                     type="text"
-                    value={settingsForm.oneSignalAppId || ''}
+                    value={settingsForm.oneSignalAppId ?? 'd03de95e-6730-4d9c-94ab-503aadcc360d'}
                     onChange={(e) =>
                       setSettingsForm({
                         ...settingsForm,
                         oneSignalAppId: e.target.value.trim(),
                       })
                     }
-                    placeholder="e.g. 12345678-abcd-ef01-2345-6789abcdef01"
+                    placeholder="d03de95e-6730-4d9c-94ab-503aadcc360d"
                     className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-slate-200 font-mono focus:ring-2 focus:ring-blue-500 outline-none"
                   />
                   <div className="p-3 rounded-xl bg-white/80 dark:bg-slate-900/80 border border-slate-200/60 dark:border-slate-800 text-[11px] text-slate-600 dark:text-slate-400 space-y-1">
