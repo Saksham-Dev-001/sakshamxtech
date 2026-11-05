@@ -89,6 +89,52 @@ export const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
   const [calcLabs, setCalcLabs] = useState<number>(45);
   const [hasCalculated, setHasCalculated] = useState(true);
 
+  // Easter Egg Interactive State for Welcome Badge
+  const [waveCount, setWaveCount] = useState(0);
+  const [isWaving, setIsWaving] = useState(false);
+  const [welcomeToast, setWelcomeToast] = useState<string | null>(null);
+  const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const welcomeMessages = [
+    "🎉 Woohoo! Welcome to SakshamXTech, Champion! 🚀",
+    "✨ Saksham Sharma says: Learn. Build. Explore. Grow! 🔥",
+    "🎁 Pro-Tip: Solve Arcade Labs & grab free official swags! 🏆",
+    "💻 Daily Unstop POTD solutions updated in C, C++ & Python! ⚡",
+    "⭐ High-Five! You're now an official Tech Explorer! 🙌",
+    "🚀 Cloud + Code + Free Goodies = SakshamXTech magic! ✨",
+  ];
+
+  const handleWelcomeClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    // 1. Trigger animated hand wave
+    setIsWaving(true);
+    setTimeout(() => setIsWaving(false), 2200);
+
+    // 2. Cycle messages & show bubble
+    const nextMsg = welcomeMessages[waveCount % welcomeMessages.length];
+    setWaveCount((prev) => prev + 1);
+    setWelcomeToast(nextMsg);
+
+    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    toastTimeoutRef.current = setTimeout(() => {
+      setWelcomeToast(null);
+    }, 4000);
+
+    // 3. Fire colorful celebratory confetti
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = (rect.left + rect.width / 2) / window.innerWidth;
+    const y = (rect.top + rect.height / 2) / window.innerHeight;
+
+    confetti({
+      particleCount: 50,
+      spread: 70,
+      origin: { x, y: Math.max(0.1, y - 0.04) },
+      colors: ['#4285F4', '#EA4335', '#FBBC05', '#34A853', '#8B5CF6', '#EC4899'],
+      ticks: 180,
+      gravity: 1.1,
+      scalar: 0.9,
+    });
+  };
+
   // Carousel Navigation Handler
   const scrollCarousel = (direction: 'left' | 'right') => {
     if (carouselRef.current) {
@@ -228,37 +274,102 @@ export const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 xl:gap-14 items-center">
             
             {/* Left Column: Headline, Subtitle & Buttons */}
-            <div className="lg:col-span-7 xl:col-span-7 space-y-6 text-left">
+            <div className="lg:col-span-7 xl:col-span-7 space-y-4 sm:space-y-6 text-left">
               
-              {/* Welcome Badge matching Mockup */}
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50/90 dark:bg-blue-950/70 border border-blue-200/70 dark:border-blue-500/30 text-blue-700 dark:text-blue-300 text-xs font-bold shadow-sm">
-                <span>👋</span>
-                <span>Welcome to SakshamXTech</span>
-              </div>
+              {/* Header Container: on mobile, headline and compact portrait sit side by side */}
+              <div className="flex items-start justify-between gap-3 sm:gap-4 lg:block">
+                <div className="flex-1 min-w-0 space-y-3 sm:space-y-4">
+                  {/* Interactive Welcome Badge with Waving Hand & Confetti Easter Egg */}
+                  <div className="relative inline-block">
+                    <button
+                      type="button"
+                      onClick={handleWelcomeClick}
+                      className={`inline-flex items-center gap-2 px-3 sm:px-3.5 py-1.5 rounded-full border text-xs font-bold shadow-xs transition-all duration-300 cursor-pointer select-none mobile-tap group ${
+                        isWaving
+                          ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white border-transparent scale-105 shadow-md shadow-blue-500/25 ring-2 ring-blue-400/50'
+                          : 'bg-blue-50/90 dark:bg-blue-950/70 border-blue-200/70 dark:border-blue-500/30 text-blue-700 dark:text-blue-300 hover:bg-blue-100/90 dark:hover:bg-blue-900/50 hover:border-blue-300'
+                      }`}
+                      title="Tap for a wave & surprise!"
+                    >
+                      <span className={`text-sm inline-block transition-transform duration-300 ${
+                        isWaving ? 'animate-wave-hand' : 'group-hover:rotate-12'
+                      }`}>
+                        👋
+                      </span>
+                      <span className="truncate">
+                        {isWaving ? "You're Awesome!" : "Welcome to SakshamXTech"}
+                      </span>
+                      <span className={`w-1.5 h-1.5 rounded-full transition-colors ${
+                        isWaving ? 'bg-amber-300 animate-ping' : 'bg-blue-500/60 dark:bg-blue-400/60'
+                      }`} />
+                    </button>
 
-              {/* Giant Headline: Learn. Build. Explore. Grow. */}
-              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-6xl xl:text-7xl font-black tracking-tight leading-[1.08] text-slate-900 dark:text-white">
-                Learn. Build.<br />
-                <span className="text-[#0066cc] dark:text-[#38bdf8]">Explore. </span>
-                <span className="text-[#e50914] dark:text-[#f87171]">Grow.</span>
-              </h1>
+                    {/* Floating Celebration Speech Bubble */}
+                    {welcomeToast && (
+                      <div className="absolute left-0 top-full mt-2.5 z-40 max-w-[270px] xs:max-w-xs sm:max-w-sm p-3 rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-blue-500/30 text-slate-900 dark:text-white shadow-xl shadow-blue-500/10 text-xs font-bold animate-in fade-in slide-in-from-top-2 duration-200 pointer-events-none">
+                        <div className="flex items-start gap-2">
+                          <span className="text-base shrink-0">✨</span>
+                          <p className="leading-snug">{welcomeToast}</p>
+                        </div>
+                        {/* Speech bubble arrow pointer */}
+                        <div className="absolute -top-1.5 left-6 w-3 h-3 bg-white dark:bg-slate-900 border-t border-l border-blue-500/30 rotate-45" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Giant Headline: Learn. Build. Explore. Grow. */}
+                  <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-6xl xl:text-7xl font-black tracking-tight leading-[1.08] text-slate-900 dark:text-white">
+                    Learn. Build.<br />
+                    <span className="text-[#0066cc] dark:text-[#38bdf8]">Explore. </span>
+                    <span className="text-[#e50914] dark:text-[#f87171]">Grow.</span>
+                  </h1>
+                </div>
+
+                {/* Mobile-Only Compact Hero Portrait Card (Side-by-side with headline on mobile) */}
+                <div className="lg:hidden shrink-0 relative mt-1">
+                  <div className="relative w-24 h-24 xs:w-28 xs:h-28 sm:w-36 sm:h-36 rounded-2xl xs:rounded-3xl overflow-hidden shadow-xl border-2 sm:border-3 border-white dark:border-slate-800 bg-gradient-to-b from-blue-50 to-white dark:from-slate-900 dark:to-slate-950">
+                    <img
+                      src="/assets/branding/saksham_portrait.png"
+                      alt="Saksham Sharma"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/assets/branding/saksham_avatar.png';
+                      }}
+                    />
+                    <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-slate-950/60 to-transparent pointer-events-none" />
+                  </div>
+                  {/* Floating Micro YouTube Badge */}
+                  <div className="absolute -bottom-1 -right-1 p-1 rounded-lg bg-red-600 text-white shadow-md shadow-red-500/30">
+                    <Play className="w-2.5 h-2.5 fill-white ml-0.5" />
+                  </div>
+                  {/* Floating Micro Cloud Badge */}
+                  <div className="absolute -top-1 -left-1 p-1 rounded-lg bg-white dark:bg-slate-900 shadow-md border border-slate-100 dark:border-slate-800">
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
+                      <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z" fill="#4285F4"/>
+                      <path d="M19 14h-1.5c0-.28-.05-.55-.13-.81l1.41-1.41c.14.71.22 1.45.22 2.22z" fill="#34A853"/>
+                      <path d="M6 14c0-1.66 1.34-3 3-3h1.5v-1.5c0-1.93 1.57-3.5 3.5-3.5 1.54 0 2.84 1 3.29 2.41l1.41-1.41C17.7 5.75 15.99 5 14 5 10.69 5 8 7.69 8 11H6c-1.66 0-3 1.34-3 3s1.34 3 3 3h4v-2H6z" fill="#FBBC05"/>
+                      <path d="M19.35 10.04c-.21-1.07-.68-2.05-1.35-2.87l-1.41 1.41c.47.57.8 1.25.95 2z" fill="#EA4335"/>
+                    </svg>
+                  </div>
+                </div>
+              </div>
 
               {/* Subtitle */}
               <p className="text-sm sm:text-base lg:text-lg text-slate-600 dark:text-slate-300 leading-relaxed max-w-xl font-normal">
                 Your one-stop platform for Google Cloud Arcade, Unstop POTD, Tech Blogs, Opportunities, Free Swags, and Programming Learning.
               </p>
 
-              {/* CTA Action Buttons: Explore Platform & Watch on YouTube */}
-              <div className="flex flex-wrap items-center gap-3.5 pt-2">
+              {/* CTA Action Buttons: Explore Platform & Watch on YouTube (Single Row Side-by-Side) */}
+              <div className="flex flex-row items-center gap-2 sm:gap-3.5 pt-1 sm:pt-2">
                 <button
                   onClick={() => {
                     trackEvent('pageView', '/google-arcade');
                     navigate('/google-arcade');
                   }}
-                  className="px-7 py-3.5 rounded-full font-bold text-sm bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/25 active:scale-[0.98] transition-all flex items-center gap-2 cursor-pointer group"
+                  className="flex-1 sm:flex-initial justify-center px-3 sm:px-7 py-2.5 sm:py-3.5 rounded-full font-bold text-xs sm:text-sm bg-blue-600 hover:bg-blue-700 text-white shadow-md sm:shadow-lg shadow-blue-500/25 active:scale-[0.98] transition-all flex items-center gap-1.5 sm:gap-2 cursor-pointer group mobile-tap shrink-0 whitespace-nowrap"
                 >
                   <span>Explore Platform</span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform shrink-0" />
                 </button>
 
                 <a
@@ -266,26 +377,26 @@ export const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
                   target="_blank"
                   rel="noreferrer"
                   onClick={() => trackEvent('youtube', 'Watch on YouTube (Hero CTA)', { videoId: 'channel', videoTitle: 'Visit SakshamXTech Channel', pagePath: '/' })}
-                  className="px-7 py-3.5 rounded-full font-bold text-sm bg-[#e50914] hover:bg-[#c90812] text-white shadow-lg shadow-red-500/25 active:scale-[0.98] transition-all flex items-center gap-2 cursor-pointer"
+                  className="flex-1 sm:flex-initial justify-center px-3 sm:px-7 py-2.5 sm:py-3.5 rounded-full font-bold text-xs sm:text-sm bg-[#e50914] hover:bg-[#c90812] text-white shadow-md sm:shadow-lg shadow-red-500/25 active:scale-[0.98] transition-all flex items-center gap-1.5 sm:gap-2 cursor-pointer mobile-tap shrink-0 whitespace-nowrap"
                 >
-                  <Play className="w-4 h-4 fill-white ml-0.5" />
+                  <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-white ml-0.5 shrink-0" />
                   <span>Watch on YouTube</span>
                 </a>
               </div>
 
             </div>
 
-            {/* Right Column: Creative Visual Area with Saksham, 3D Cloud, Laptop & Floating Badges */}
-            <div className="lg:col-span-5 xl:col-span-5 relative flex items-center justify-center">
+            {/* Right Column: Creative Visual Area with Saksham, 3D Cloud, Laptop & Floating Badges (Desktop Only, Mobile has top-side portrait) */}
+            <div className="hidden lg:flex lg:col-span-5 xl:col-span-5 relative items-center justify-center">
               
               {/* Organic Curved Gradient Splash behind Portrait */}
-              <div className="absolute inset-0 max-w-[420px] max-h-[420px] mx-auto bg-gradient-to-tr from-cyan-400/30 via-blue-500/20 to-sky-300/30 dark:from-cyan-500/20 dark:via-blue-600/20 dark:to-transparent rounded-[50px] rotate-[-4deg] scale-105 pointer-events-none" />
+              <div className="absolute inset-0 max-w-[320px] sm:max-w-[420px] max-h-[320px] sm:max-h-[420px] mx-auto bg-gradient-to-tr from-cyan-400/30 via-blue-500/20 to-sky-300/30 dark:from-cyan-500/20 dark:via-blue-600/20 dark:to-transparent rounded-[50px] rotate-[-4deg] scale-105 pointer-events-none" />
 
-              <div className="relative w-full max-w-[440px] aspect-[4/4.5] flex items-center justify-center">
+              <div className="relative w-full max-w-[340px] sm:max-w-[440px] aspect-[4/4.5] flex items-center justify-center">
                 
                 {/* Floating 3D Google Cloud Logo (Top Left) */}
-                <div className="absolute top-2 left-0 sm:left-4 z-20 p-2.5 rounded-2xl bg-white/90 dark:bg-slate-900/90 shadow-xl border border-slate-100 dark:border-slate-800 animate-bounce duration-1000">
-                  <svg className="w-9 h-9" viewBox="0 0 24 24" fill="none">
+                <div className="absolute top-2 left-2 sm:left-4 z-20 p-2 sm:p-2.5 rounded-2xl bg-white/90 dark:bg-slate-900/90 shadow-xl border border-slate-100 dark:border-slate-800 animate-bounce duration-1000">
+                  <svg className="w-7 h-7 sm:w-9 sm:h-9" viewBox="0 0 24 24" fill="none">
                     <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z" fill="#4285F4"/>
                     <path d="M19 14h-1.5c0-.28-.05-.55-.13-.81l1.41-1.41c.14.71.22 1.45.22 2.22z" fill="#34A853"/>
                     <path d="M6 14c0-1.66 1.34-3 3-3h1.5v-1.5c0-1.93 1.57-3.5 3.5-3.5 1.54 0 2.84 1 3.29 2.41l1.41-1.41C17.7 5.75 15.99 5 14 5 10.69 5 8 7.69 8 11H6c-1.66 0-3 1.34-3 3s1.34 3 3 3h4v-2H6z" fill="#FBBC05"/>
@@ -294,29 +405,29 @@ export const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
                 </div>
 
                 {/* Floating 3D YouTube Icon (Top Right) */}
-                <div className="absolute top-6 right-2 sm:right-6 z-20 p-2.5 rounded-2xl bg-white/90 dark:bg-slate-900/90 shadow-xl border border-slate-100 dark:border-slate-800 animate-pulse">
-                  <div className="w-8 h-8 rounded-xl bg-red-600 flex items-center justify-center text-white shadow-md shadow-red-500/30">
-                    <Play className="w-4 h-4 fill-white ml-0.5" />
+                <div className="absolute top-4 right-2 sm:right-6 z-20 p-2 sm:p-2.5 rounded-2xl bg-white/90 dark:bg-slate-900/90 shadow-xl border border-slate-100 dark:border-slate-800 animate-pulse">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-red-600 flex items-center justify-center text-white shadow-md shadow-red-500/30">
+                    <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-white ml-0.5" />
                   </div>
                 </div>
 
-                {/* Floating 3D Code Symbol (Middle Right) */}
-                <div className="absolute top-1/2 right-0 z-20 p-2 rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-500/30 font-mono font-bold text-xs">
+                {/* Floating 3D Code Symbol (Middle Right - hidden on mobile to avoid clutter) */}
+                <div className="hidden sm:block absolute top-1/2 right-1 sm:right-0 z-20 p-1.5 sm:p-2 rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-500/30 font-mono font-bold text-xs">
                   {'</>'}
                 </div>
 
-                {/* Floating Saksham Sharma Handwritten Callout */}
-                <div className="absolute top-12 left-4 sm:left-10 z-20 flex flex-col items-start pointer-events-none">
-                  <span className="font-heading italic font-bold text-slate-700 dark:text-slate-200 text-sm tracking-wide -rotate-6">
+                {/* Floating Saksham Sharma Handwritten Callout (hidden on mobile to prevent clutter & overlap) */}
+                <div className="hidden sm:flex absolute top-12 left-4 sm:left-10 z-20 flex-col items-start pointer-events-none">
+                  <span className="font-heading italic font-bold text-slate-700 dark:text-slate-200 text-xs sm:text-sm tracking-wide -rotate-6">
                     Saksham<br />Sharma
                   </span>
-                  <svg className="w-8 h-8 text-slate-600 dark:text-slate-300 ml-3 -mt-1" viewBox="0 0 40 40" fill="none" stroke="currentColor" strokeWidth="2">
+                  <svg className="w-7 h-7 sm:w-8 sm:h-8 text-slate-600 dark:text-slate-300 ml-3 -mt-1" viewBox="0 0 40 40" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M5 5 C 10 20, 25 25, 32 30 M26 31 L33 30 L32 23" />
                   </svg>
                 </div>
 
                 {/* Central Portrait of Saksham Sharma */}
-                <div className="relative w-[300px] sm:w-[340px] aspect-square rounded-[36px] overflow-hidden shadow-2xl border-4 border-white dark:border-slate-800 bg-gradient-to-b from-blue-50 to-white dark:from-slate-900 dark:to-slate-950 z-10 group">
+                <div className="relative w-[250px] xs:w-[270px] sm:w-[340px] aspect-square rounded-[32px] sm:rounded-[36px] overflow-hidden shadow-2xl border-4 border-white dark:border-slate-800 bg-gradient-to-b from-blue-50 to-white dark:from-slate-900 dark:to-slate-950 z-10 group">
                   <img
                     src="/assets/branding/saksham_portrait.png"
                     alt="Saksham Sharma - Founder SakshamXTech"
@@ -330,8 +441,8 @@ export const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
                 </div>
 
                 {/* Floating SX Badge (Bottom Right) */}
-                <div className="absolute -bottom-2 -right-4 sm:right-0 z-20 p-2.5 rounded-2xl bg-white/95 dark:bg-slate-900/95 shadow-2xl border border-slate-100 dark:border-slate-800 flex items-center gap-2.5">
-                  <div className="w-10 h-10 rounded-xl overflow-hidden border border-blue-500/30 shadow-md shadow-blue-500/20 bg-slate-900 shrink-0">
+                <div className="absolute -bottom-2 right-2 sm:right-0 z-20 p-1.5 sm:p-2.5 rounded-2xl bg-white/95 dark:bg-slate-900/95 shadow-2xl border border-slate-100 dark:border-slate-800 flex items-center gap-2 sm:gap-2.5">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl overflow-hidden border border-blue-500/30 shadow-md shadow-blue-500/20 bg-slate-900 shrink-0">
                     <img
                       src="/assets/branding/saksham_avatar.png"
                       alt="SakshamXTech Logo"
@@ -342,8 +453,8 @@ export const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
                     />
                   </div>
                   <div>
-                    <span className="text-[11px] font-bold text-slate-900 dark:text-white block">SakshamXTech</span>
-                    <span className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold">Official Platform</span>
+                    <span className="text-[10px] sm:text-[11px] font-bold text-slate-900 dark:text-white block">SakshamXTech</span>
+                    <span className="text-[9px] sm:text-[10px] text-blue-600 dark:text-blue-400 font-semibold">Official Platform</span>
                   </div>
                 </div>
 
@@ -360,13 +471,15 @@ export const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
       <section className="relative py-4 max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 sm:gap-4 xl:gap-5">
           
-          {/* Card 1: 10K+ YouTube Family */}
+          {/* Card 1: 13.3K+ YouTube Family */}
           <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all flex items-center gap-3.5">
             <div className="w-10 h-10 rounded-xl bg-red-50 dark:bg-red-950/60 text-red-600 flex items-center justify-center shrink-0">
               <Youtube className="w-5 h-5 fill-red-600" />
             </div>
             <div>
-              <p className="text-xl font-black text-slate-900 dark:text-white">10K+</p>
+              <p className="text-xl font-black text-slate-900 dark:text-white">
+                {siteSettings.statistics?.youtubeSubscribers || '13.3K+'}
+              </p>
               <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">YouTube Family</p>
             </div>
           </div>
@@ -528,7 +641,7 @@ export const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
             {/* Horizontal Video Carousel matching Mockup Cards */}
             <div 
               ref={carouselRef}
-              className="flex items-stretch gap-4 overflow-x-auto no-scrollbar pb-2 scroll-smooth"
+              className="flex items-stretch gap-4 overflow-x-auto no-scrollbar pb-2 scroll-smooth snap-x snap-mandatory scroll-px-4"
             >
               {ytVideos.map((video, idx) => (
                 <div
@@ -541,7 +654,7 @@ export const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
                     });
                     setActiveVideoModal({ id: video.videoId || video.id, title: video.title });
                   }}
-                  className="min-w-[280px] sm:min-w-[300px] max-w-[320px] bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer group flex flex-col justify-between"
+                  className="snap-start shrink-0 min-w-[270px] sm:min-w-[300px] max-w-[320px] bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer group flex flex-col justify-between mobile-tap"
                 >
                   <div>
                     {/* Thumbnail */}

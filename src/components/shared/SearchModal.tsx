@@ -238,9 +238,9 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, navig
   ];
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-start justify-center p-4 sm:p-6 md:p-12 overflow-y-auto animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-start justify-center p-3 sm:p-6 md:p-12 overflow-y-auto animate-in fade-in duration-200">
       <div 
-        className="w-full max-w-2xl bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden flex flex-col my-auto"
+        className="w-full max-w-2xl bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden flex flex-col my-auto max-h-[90dvh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Search Input Bar */}
@@ -271,12 +271,12 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, navig
         </div>
 
         {/* Filter Pills */}
-        <div className="px-4 py-2 bg-slate-950/40 border-b border-slate-800/80 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+        <div className="px-4 py-2 bg-slate-950/40 border-b border-slate-800/80 flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-px-4">
           {categories.map((cat) => (
             <button
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
-              className={`px-2.5 py-1 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+              className={`px-2.5 py-1 rounded-lg text-xs font-medium whitespace-nowrap transition-colors shrink-0 cursor-pointer mobile-tap ${
                 selectedCategory === cat.id
                   ? 'bg-cyan-500 text-slate-950 font-bold'
                   : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
@@ -288,7 +288,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, navig
         </div>
 
         {/* Search Results List */}
-        <div className="max-h-[50vh] overflow-y-auto p-3 space-y-1.5 divide-y divide-slate-800/40">
+        <div className="max-h-[55dvh] overflow-y-auto p-3 space-y-1.5 divide-y divide-slate-800/40">
           {filteredResults.length === 0 ? (
             <div className="py-12 text-center text-slate-400">
               <Search className="w-8 h-8 mx-auto text-slate-600 mb-2" />

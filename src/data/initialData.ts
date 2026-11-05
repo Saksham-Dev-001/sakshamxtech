@@ -33,7 +33,7 @@ export const initialSiteSettings: SiteSettings = {
     twitter: 'https://twitter.com/sakshamxtech',
   },
   statistics: {
-    youtubeSubscribers: '13.5K+',
+    youtubeSubscribers: '13.3K+',
     youtubeVideos: '350+',
     technicalSolutions: '450+',
     publishedBlogs: '120+',

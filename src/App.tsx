@@ -179,7 +179,7 @@ function AppContent() {
   const isAdminRoute = currentPath === '/admin' || currentPath === '/admin/login' || currentPath === '/workspace';
 
   return (
-    <div className={`min-h-screen flex flex-col relative transition-colors duration-200 ${
+    <div className={`min-h-screen w-full max-w-full overflow-x-hidden flex flex-col relative transition-colors duration-200 ${
       theme === 'dark'
         ? 'bg-[#030712] text-slate-100 selection:bg-indigo-500/30 selection:text-cyan-200'
         : 'bg-[#f8fafc] text-slate-900 selection:bg-blue-500/20 selection:text-blue-700'

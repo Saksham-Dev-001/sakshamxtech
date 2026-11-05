@@ -102,6 +102,7 @@ export const CPlaygroundPage: React.FC<CPlaygroundPageProps> = () => {
   const [executionTime, setExecutionTime] = useState<number | null>(null);
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [copied, setCopied] = useState(false);
+  const [mobileTab, setMobileTab] = useState<'editor' | 'terminal'>('editor');
 
   // Sync to local storage
   useEffect(() => {
@@ -113,6 +114,8 @@ export const CPlaygroundPage: React.FC<CPlaygroundPageProps> = () => {
     setStatus('idle');
     setErrors('');
     setOutput('Compiling code with GCC...');
+    // Auto switch to terminal view on mobile to show execution
+    setMobileTab('terminal');
 
     try {
       trackEvent('compiler');
@@ -222,11 +225,41 @@ export const CPlaygroundPage: React.FC<CPlaygroundPageProps> = () => {
         </div>
       </div>
 
+      {/* Mobile IDE View Switcher (lg:hidden - 100% untouched on Desktop) */}
+      <div className="lg:hidden flex items-center bg-slate-900/90 p-1 rounded-xl border border-slate-800 mb-4 shadow-sm">
+        <button
+          onClick={() => setMobileTab('editor')}
+          className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer mobile-tap ${
+            mobileTab === 'editor'
+              ? 'bg-blue-600 text-white shadow-sm'
+              : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          <Code2 className="w-3.5 h-3.5" />
+          <span>Code Editor (main.c)</span>
+        </button>
+        <button
+          onClick={() => setMobileTab('terminal')}
+          className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer mobile-tap ${
+            mobileTab === 'terminal'
+              ? 'bg-blue-600 text-white shadow-sm'
+              : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          <Terminal className="w-3.5 h-3.5" />
+          <span>Execution Output</span>
+          {status === 'success' && <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />}
+          {status === 'error' && <span className="w-2 h-2 rounded-full bg-rose-400 animate-pulse" />}
+        </button>
+      </div>
+
       {/* Editor & Terminal Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
         {/* Left: Code Editor */}
-        <div className="lg:col-span-7 glass-card rounded-2xl border border-slate-800 overflow-hidden shadow-2xl flex flex-col bg-slate-950">
+        <div className={`lg:col-span-7 glass-card rounded-2xl border border-slate-800 overflow-hidden shadow-2xl flex-col bg-slate-950 ${
+          mobileTab === 'editor' ? 'flex' : 'hidden lg:flex'
+        }`}>
           <div className="px-4 py-2.5 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between text-xs text-slate-400">
             <span className="font-mono font-bold text-slate-200 flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-cyan-400" />
@@ -257,7 +290,9 @@ export const CPlaygroundPage: React.FC<CPlaygroundPageProps> = () => {
         </div>
 
         {/* Right: Custom Stdin + Output Terminal */}
-        <div className="lg:col-span-5 space-y-4">
+        <div className={`lg:col-span-5 space-y-4 ${
+          mobileTab === 'terminal' ? 'block' : 'hidden lg:block'
+        }`}>
           
           {/* Custom Stdin Box */}
           <div className="glass-card rounded-2xl border border-slate-800 p-4 bg-slate-950/80">

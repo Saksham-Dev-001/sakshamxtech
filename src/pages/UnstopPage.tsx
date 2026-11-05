@@ -309,13 +309,13 @@ export const UnstopPage: React.FC<UnstopPageProps> = ({ navigate }) => {
             </div>
           </div>
 
-          <div className="relative z-10 shrink-0 flex items-center gap-3">
+          <div className="relative z-10 shrink-0 flex items-center gap-3 w-full sm:w-auto">
             <button
               onClick={() => {
                 trackEvent('pageView', `/unstop/${todaysProblem.slug}`);
                 navigate(`/unstop/${todaysProblem.slug}`);
               }}
-              className="px-7 py-3.5 rounded-2xl font-black text-xs bg-red-600 hover:bg-red-500 text-white shadow-xl shadow-red-600/30 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
+              className="w-full sm:w-auto justify-center px-7 py-3.5 rounded-2xl font-black text-xs bg-red-600 hover:bg-red-500 text-white shadow-xl shadow-red-600/30 active:scale-95 transition-all flex items-center gap-2 cursor-pointer mobile-tap"
             >
               <span>View Today's Solution</span>
               <ArrowRight className="w-4 h-4" />

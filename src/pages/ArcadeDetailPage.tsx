@@ -177,7 +177,7 @@ export const ArcadeDetailPage: React.FC<ArcadeDetailPageProps> = ({ slug, naviga
                 {/* Command block */}
                 {step.command && (
                   <div className="mt-4 relative group">
-                    <pre className="p-4 rounded-xl bg-slate-900 border border-slate-800 text-cyan-300 font-mono text-xs overflow-x-auto leading-relaxed shadow-inner">
+                    <pre className="p-4 pr-24 rounded-xl bg-slate-900 border border-slate-800 text-cyan-300 font-mono text-xs overflow-x-auto leading-relaxed shadow-inner">
                       <code>{step.command}</code>
                     </pre>
                     <button

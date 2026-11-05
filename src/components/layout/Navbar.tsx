@@ -113,7 +113,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPath, navigate, openSearc
             </div>
 
             <div className="flex items-center">
-              <span className="font-extrabold text-xl tracking-tight text-slate-900 dark:text-white">
+              <span className="font-extrabold text-lg sm:text-xl tracking-tight text-slate-900 dark:text-white truncate">
                 Saksham<span className="text-blue-600">X</span>Tech
               </span>
             </div>
@@ -144,12 +144,12 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPath, navigate, openSearc
           </nav>
 
           {/* Right Action Icons & Controls */}
-          <div className="flex items-center gap-1.5 sm:gap-2">
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             
             {/* Global Search Button */}
             <button
               onClick={openSearch}
-              className="p-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors relative"
+              className="p-1.5 sm:p-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors relative cursor-pointer"
               title="Search (⌘K)"
             >
               <Search className="w-4 h-4" />
@@ -159,11 +159,11 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPath, navigate, openSearc
             <div className="relative">
               <button
                 onClick={() => setShowNotificationToast(!showNotificationToast)}
-                className="p-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors relative"
+                className="p-1.5 sm:p-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors relative cursor-pointer"
                 title="Notifications"
               >
                 <Bell className="w-4 h-4" />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-slate-950 animate-pulse" />
+                <span className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-slate-950 animate-pulse" />
               </button>
 
               {/* Notification Popover */}
@@ -183,7 +183,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPath, navigate, openSearc
             {/* Dark/Light Toggle */}
             <button
               onClick={toggleTheme}
-              className="p-2 text-slate-600 dark:text-slate-300 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
+              className="p-1.5 sm:p-2 text-slate-600 dark:text-slate-300 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors cursor-pointer"
               title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
             >
               {theme === 'dark' ? (
@@ -197,18 +197,18 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPath, navigate, openSearc
             {isAdmin && (
               <button
                 onClick={() => handleNavClick('/admin')}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3.5 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm active:scale-95 transition-all ml-1 animate-in fade-in"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs p-1.5 sm:px-3.5 sm:py-1.5 rounded-full flex items-center gap-1.5 shadow-sm active:scale-95 transition-all cursor-pointer"
                 title="Open Management Studio"
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span>Workspace</span>
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                <span className="hidden sm:inline">Workspace</span>
               </button>
             )}
 
             {/* Mobile Hamburger Toggle */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="xl:hidden p-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors ml-1"
+              className="xl:hidden p-1.5 sm:p-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
               aria-label="Toggle Navigation"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -220,6 +220,18 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPath, navigate, openSearc
         {/* Mobile Dropdown Menu */}
         {mobileMenuOpen && (
           <div className="xl:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-4 py-4 space-y-1 shadow-xl animate-in slide-in-from-top-2">
+            {isAdmin && (
+              <button
+                onClick={() => handleNavClick('/admin')}
+                className="w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold bg-blue-600 text-white flex items-center justify-between shadow-sm mb-2 cursor-pointer"
+              >
+                <span className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>Admin Workspace Studio</span>
+                </span>
+                <ChevronRight className="w-3.5 h-3.5 opacity-80" />
+              </button>
+            )}
             {navLinks.map((item) => {
               const isActive =
                 item.path === '/'

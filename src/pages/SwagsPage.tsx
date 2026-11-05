@@ -139,7 +139,8 @@ export const SwagsPage: React.FC<SwagsPageProps> = ({ navigate }) => {
               className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-bold text-xs shadow-md shadow-red-500/20 transition-all shrink-0 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
-              <span>Add Swag</span>
+              <span className="hidden sm:inline">Add Swag</span>
+              <span className="sm:hidden">New</span>
             </button>
           )}
         </div>

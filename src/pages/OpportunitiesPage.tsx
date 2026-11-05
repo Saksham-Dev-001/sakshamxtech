@@ -148,7 +148,8 @@ export const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({ navigate }
               className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold text-xs shadow-md shadow-purple-500/20 transition-all shrink-0 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
-              <span>Post Opportunity</span>
+              <span className="hidden sm:inline">Post Opportunity</span>
+              <span className="sm:hidden">New</span>
             </button>
           )}
         </div>

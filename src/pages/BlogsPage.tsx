@@ -221,7 +221,7 @@ export const BlogsPage: React.FC<BlogsPageProps> = ({ navigate }) => {
       </div>
 
       {/* Category Filter Pills with Dynamic Counts */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-8 no-scrollbar">
+      <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-8 no-scrollbar scroll-px-4 snap-x">
         {categories.map((cat) => {
           const count = getCategoryCount(cat);
           const isSelected = selectedCategory === cat;
@@ -229,7 +229,7 @@ export const BlogsPage: React.FC<BlogsPageProps> = ({ navigate }) => {
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-4 py-2 rounded-2xl text-xs font-bold whitespace-nowrap transition-all duration-200 flex items-center gap-2 cursor-pointer ${
+              className={`px-4 py-2 rounded-2xl text-xs font-bold whitespace-nowrap transition-all duration-200 flex items-center gap-2 cursor-pointer snap-start shrink-0 mobile-tap ${
                 isSelected
                   ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
                   : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200/80 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'

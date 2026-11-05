@@ -143,7 +143,8 @@ export const ResourcesPage: React.FC<ResourcesPageProps> = () => {
               className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white font-bold text-xs shadow-md shadow-teal-500/20 transition-all shrink-0 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
-              <span>Add Resource</span>
+              <span className="hidden sm:inline">Add Resource</span>
+              <span className="sm:hidden">New</span>
             </button>
           )}
         </div>

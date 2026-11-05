@@ -191,7 +191,8 @@ int main() {
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 transition-all shrink-0 cursor-pointer self-start sm:self-auto"
             >
               <Plus className="w-4 h-4" />
-              <span>Add Lecture</span>
+              <span className="hidden sm:inline">Add Lecture</span>
+              <span className="sm:hidden">New</span>
             </button>
           )}
         </div>

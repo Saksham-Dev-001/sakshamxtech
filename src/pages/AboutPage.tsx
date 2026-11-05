@@ -153,7 +153,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ navigate }) => {
                 href={`${siteSettings.socialLinks.youtube}?sub_confirmation=1`}
                 target="_blank"
                 rel="noreferrer"
-                className="px-5 py-2.5 text-xs font-black bg-red-600 hover:bg-red-700 text-white rounded-xl transition-all flex items-center gap-2 shadow-md shadow-red-500/20 cursor-pointer"
+                className="px-5 py-2.5 text-xs font-black bg-red-600 hover:bg-red-700 text-white rounded-xl transition-all flex items-center gap-2 shadow-md shadow-red-500/20 cursor-pointer mobile-tap"
               >
                 <Youtube className="w-4 h-4 fill-white" />
                 <span>Subscribe on YouTube</span>
@@ -161,7 +161,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ navigate }) => {
 
               <a
                 href="#collab-section"
-                className="px-5 py-2.5 text-xs font-bold bg-slate-900 hover:bg-black dark:bg-slate-800 dark:hover:bg-slate-700 text-white rounded-xl transition-all flex items-center gap-2 shadow-sm cursor-pointer"
+                className="px-5 py-2.5 text-xs font-bold bg-slate-900 hover:bg-black dark:bg-slate-800 dark:hover:bg-slate-700 text-white rounded-xl transition-all flex items-center gap-2 shadow-sm cursor-pointer mobile-tap"
               >
                 <Briefcase className="w-4 h-4 text-amber-400" />
                 <span>Brand Sponsorships &amp; Collabs</span>
@@ -171,7 +171,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ navigate }) => {
                 href={siteSettings.socialLinks.telegram}
                 target="_blank"
                 rel="noreferrer"
-                className="px-4 py-2.5 text-xs font-bold bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/40 text-blue-600 dark:text-blue-300 border border-blue-200 dark:border-blue-800 rounded-xl transition-colors cursor-pointer"
+                className="px-4 py-2.5 text-xs font-bold bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/40 text-blue-600 dark:text-blue-300 border border-blue-200 dark:border-blue-800 rounded-xl transition-colors cursor-pointer mobile-tap"
               >
                 Telegram Community
               </a>
@@ -184,7 +184,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ navigate }) => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm text-center">
           <p className="text-2xl sm:text-3xl font-black text-red-600 dark:text-red-400 font-mono">
-            {siteSettings.statistics.youtubeSubscribers || '13.5K+'}
+            {siteSettings.statistics.youtubeSubscribers || '13.3K+'}
           </p>
           <p className="text-xs text-slate-500 dark:text-slate-400 font-bold mt-1">YouTube Subscribers</p>
         </div>

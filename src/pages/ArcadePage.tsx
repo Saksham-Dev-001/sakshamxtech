@@ -364,64 +364,53 @@ export const ArcadePage: React.FC<ArcadePageProps> = ({ navigate, initialTab }) 
       </div>
 
       {/* Unified Master Hero Banner */}
-      <div className="relative mb-8 p-6 sm:p-10 rounded-3xl bg-linear-to-r from-blue-50/90 via-white to-sky-50/90 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
+      <div className="relative mb-6 sm:mb-8 p-4 sm:p-8 lg:p-10 rounded-2xl sm:rounded-3xl bg-linear-to-r from-blue-50/90 via-white to-sky-50/90 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 border border-slate-200/80 dark:border-slate-800 shadow-xs sm:shadow-sm overflow-hidden flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5 sm:gap-8">
         
-        <div className="max-w-2xl relative z-10 space-y-3">
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
-              <Sparkles className="w-3.5 h-3.5" />
-              Google Cloud Arcade 2026 Active
-            </span>
-            <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
-              <CheckCircle2 className="w-3 h-3" />
-              100% Free Credits Supported
-            </span>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-800 shadow-md p-2 flex items-center justify-center border border-slate-100 dark:border-slate-700 shrink-0">
-              <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none">
+        <div className="max-w-2xl relative z-10 space-y-2 sm:space-y-3">
+          <div className="flex items-center gap-2.5 sm:gap-3.5">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-white dark:bg-slate-800 shadow-md p-1.5 sm:p-2 flex items-center justify-center border border-slate-100 dark:border-slate-700 shrink-0">
+              <svg className="w-6 h-6 sm:w-8 sm:h-8" viewBox="0 0 24 24" fill="none">
                 <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z" fill="#4285F4"/>
                 <path d="M19 14h-1.5c0-.28-.05-.55-.13-.81l1.41-1.41c.14.71.22 1.45.22 2.22z" fill="#34A853"/>
                 <path d="M6 14c0-1.66 1.34-3 3-3h1.5v-1.5c0-1.93 1.57-3.5 3.5-3.5 1.54 0 2.84 1 3.29 2.41l1.41-1.41C17.7 5.75 15.99 5 14 5 10.69 5 8 7.69 8 11H6c-1.66 0-3 1.34-3 3s1.34 3 3 3h4v-2H6z" fill="#FBBC05"/>
                 <path d="M19.35 10.04c-.21-1.07-.68-2.05-1.35-2.87l-1.41 1.41c.47.57.8 1.25.95 2z" fill="#EA4335"/>
               </svg>
             </div>
-            <h1 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
+            <h1 className="text-xl sm:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">
               Google Cloud Arcade 2026 Hub
             </h1>
           </div>
 
-          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed max-w-xl">
             All Google Cloud Arcade solutions, points calculator, official physical swag items, and milestone tracking unified under one single roof.
           </p>
         </div>
 
-        {/* Quick Season Stats Box */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full lg:w-auto shrink-0">
-          <div className="p-3.5 rounded-2xl bg-white/80 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 text-center shadow-xs">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Active Labs</span>
-            <span className="text-lg font-black text-blue-600 dark:text-blue-400 font-mono">{arcadeSolutions.length}+</span>
+        {/* Quick Season Stats Box (Symmetric 3-col on Mobile and Desktop) */}
+        <div className="grid grid-cols-3 gap-2 sm:gap-3.5 w-full lg:w-auto shrink-0">
+          <div className="p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl bg-white/80 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 text-center shadow-xs">
+            <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-slate-400 block truncate">Active Labs</span>
+            <span className="text-sm sm:text-lg font-black text-blue-600 dark:text-blue-400 font-mono">{arcadeSolutions.length}+</span>
           </div>
-          <div className="p-3.5 rounded-2xl bg-white/80 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 text-center shadow-xs">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Champion Goal</span>
-            <span className="text-lg font-black text-emerald-600 dark:text-emerald-400 font-mono">45 Pts</span>
+          <div className="p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl bg-white/80 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 text-center shadow-xs">
+            <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-slate-400 block truncate">Champion Goal</span>
+            <span className="text-sm sm:text-lg font-black text-emerald-600 dark:text-emerald-400 font-mono">45 Pts</span>
           </div>
-          <div className="p-3.5 rounded-2xl bg-white/80 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 text-center shadow-xs col-span-2 sm:col-span-1">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Swag Delivery</span>
-            <span className="text-lg font-black text-purple-600 dark:text-purple-400 font-mono">100% Free</span>
+          <div className="p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl bg-white/80 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 text-center shadow-xs">
+            <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-slate-400 block truncate">Swag Delivery</span>
+            <span className="text-sm sm:text-lg font-black text-purple-600 dark:text-purple-400 font-mono">100% Free</span>
           </div>
         </div>
 
       </div>
 
       {/* Systematic Master Navigation Tabs Bar */}
-      <div className="sticky top-16 z-30 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md py-3 -mx-4 px-4 sm:mx-0 sm:px-0 mb-8 border-b border-slate-200/80 dark:border-slate-800">
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+      <div className="sticky top-14 sm:top-16 z-30 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md py-2.5 sm:py-3 -mx-4 px-4 sm:mx-0 sm:px-0 mb-6 sm:mb-8 border-b border-slate-200/80 dark:border-slate-800">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-px-4 snap-x">
           
           <button
             onClick={() => handleTabChange('solutions')}
-            className={`px-5 py-2.5 text-xs font-bold rounded-2xl transition-all flex items-center gap-2 shrink-0 ${
+            className={`px-4 sm:px-5 py-2.5 text-xs font-bold rounded-2xl transition-all flex items-center gap-2 snap-start shrink-0 cursor-pointer mobile-tap ${
               activeTab === 'solutions'
                 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25 scale-[1.02]'
                 : 'bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200/80 dark:hover:bg-slate-800'
@@ -438,7 +427,7 @@ export const ArcadePage: React.FC<ArcadePageProps> = ({ navigate, initialTab }) 
 
           <button
             onClick={() => handleTabChange('calculator')}
-            className={`px-5 py-2.5 text-xs font-bold rounded-2xl transition-all flex items-center gap-2 shrink-0 ${
+            className={`px-4 sm:px-5 py-2.5 text-xs font-bold rounded-2xl transition-all flex items-center gap-2 snap-start shrink-0 cursor-pointer mobile-tap ${
               activeTab === 'calculator'
                 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25 scale-[1.02]'
                 : 'bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200/80 dark:hover:bg-slate-800'
@@ -453,7 +442,7 @@ export const ArcadePage: React.FC<ArcadePageProps> = ({ navigate, initialTab }) 
 
           <button
             onClick={() => handleTabChange('swags')}
-            className={`px-5 py-2.5 text-xs font-bold rounded-2xl transition-all flex items-center gap-2 shrink-0 ${
+            className={`px-4 sm:px-5 py-2.5 text-xs font-bold rounded-2xl transition-all flex items-center gap-2 snap-start shrink-0 cursor-pointer mobile-tap ${
               activeTab === 'swags'
                 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25 scale-[1.02]'
                 : 'bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200/80 dark:hover:bg-slate-800'
@@ -470,7 +459,7 @@ export const ArcadePage: React.FC<ArcadePageProps> = ({ navigate, initialTab }) 
 
           <button
             onClick={() => handleTabChange('tracker')}
-            className={`px-5 py-2.5 text-xs font-bold rounded-2xl transition-all flex items-center gap-2 shrink-0 ${
+            className={`px-4 sm:px-5 py-2.5 text-xs font-bold rounded-2xl transition-all flex items-center gap-2 snap-start shrink-0 cursor-pointer mobile-tap ${
               activeTab === 'tracker'
                 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25 scale-[1.02]'
                 : 'bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200/80 dark:hover:bg-slate-800'
@@ -482,7 +471,7 @@ export const ArcadePage: React.FC<ArcadePageProps> = ({ navigate, initialTab }) 
 
           <button
             onClick={() => handleTabChange('faqs')}
-            className={`px-5 py-2.5 text-xs font-bold rounded-2xl transition-all flex items-center gap-2 shrink-0 ${
+            className={`px-4 sm:px-5 py-2.5 text-xs font-bold rounded-2xl transition-all flex items-center gap-2 snap-start shrink-0 cursor-pointer mobile-tap ${
               activeTab === 'faqs'
                 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25 scale-[1.02]'
                 : 'bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200/80 dark:hover:bg-slate-800'
@@ -535,10 +524,11 @@ export const ArcadePage: React.FC<ArcadePageProps> = ({ navigate, initialTab }) 
               {isAdmin && (
                 <button
                   onClick={handleOpenNewModal}
-                  className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 transition-all shrink-0 cursor-pointer"
+                  className="inline-flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 transition-all shrink-0 cursor-pointer mobile-tap"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>Add Lab</span>
+                  <span className="hidden sm:inline">Add Lab</span>
+                  <span className="sm:hidden">New</span>
                 </button>
               )}
             </div>
