@@ -108,3 +108,4 @@ export const PWAInstallModal: React.FC<PWAInstallModalProps> = ({
     </div>
   );
 };
+

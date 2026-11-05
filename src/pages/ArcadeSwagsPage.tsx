@@ -184,12 +184,12 @@ export const ArcadeSwagsPage: React.FC<ArcadeSwagsPageProps> = ({ navigate }) =>
             className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-3 sm:p-3.5 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group"
           >
             <div>
-              {/* Top Image Container matching Image 2 with colorful background */}
-              <div className={`relative aspect-[4/3] rounded-2xl overflow-hidden flex items-center justify-center p-3 transition-transform duration-300 ${getCardInnerBg(idx)}`}>
+              {/* Top Image Container: Full Cover without background borders */}
+              <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-slate-950 border border-slate-100 dark:border-slate-800 shadow-inner">
                 <img
                   src={swag.imageUrl}
                   alt={swag.title}
-                  className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   onError={(e) => {
                     (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=600&q=80';
                   }}

@@ -192,18 +192,6 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPath, navigate, openSearc
               )}
             </div>
 
-            {/* Install App Button (Desktop) */}
-            {!isInstalled && (
-              <button
-                onClick={handleInstallClick}
-                className="hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-extrabold bg-blue-50 dark:bg-blue-950/70 border border-blue-200/80 dark:border-blue-500/30 text-blue-600 dark:text-blue-400 hover:bg-blue-600 hover:text-white transition-all shadow-xs cursor-pointer active:scale-95"
-                title="Install SakshamXTech App on your computer"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>Install App</span>
-              </button>
-            )}
-
             {/* Dark/Light Toggle */}
             <button
               onClick={toggleTheme}
