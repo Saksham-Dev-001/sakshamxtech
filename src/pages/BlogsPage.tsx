@@ -143,7 +143,7 @@ export const BlogsPage: React.FC<BlogsPageProps> = ({ navigate }) => {
     });
   };
 
-  const handleSaveModal = (data: Omit<BlogPost, 'id'> | BlogPost) => {
+  const handleSaveModal = (data: Partial<BlogPost>) => {
     if (editorModal.data && 'id' in editorModal.data) {
       updateBlog(editorModal.data.id, data);
     } else {

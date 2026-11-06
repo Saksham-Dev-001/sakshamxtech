@@ -62,6 +62,7 @@ export interface ArcadeSolution {
   pointsAwarded: number;
   lastUpdated: string;
   isPublished: boolean;
+  updatedAt?: number;
 }
 
 export interface UnstopProblem {
@@ -87,6 +88,7 @@ export interface UnstopProblem {
   }[];
   youtubeVideoId?: string;
   tags: string[];
+  updatedAt?: number;
 }
 
 export interface Opportunity {
@@ -107,6 +109,7 @@ export interface Opportunity {
   featured: boolean;
   postedDate: string;
   clicksCount: number;
+  updatedAt?: number;
 }
 
 export interface SwagItem {
@@ -170,6 +173,7 @@ export interface ResourceItem {
   tags: string[];
   downloadsCount: number;
   publishedDate: string;
+  updatedAt?: number;
 }
 
 export interface YouTubeVideoItem {

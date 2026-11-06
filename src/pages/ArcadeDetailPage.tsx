@@ -10,7 +10,7 @@ import {
   Play, 
   AlertCircle, 
   CheckCircle2, 
-  ChevronRight,
+  ChevronRight, 
   Sparkles,
   Edit3,
   Share2
@@ -32,7 +32,7 @@ export const ArcadeDetailPage: React.FC<ArcadeDetailPageProps> = ({ slug, naviga
   const [copiedLink, setCopiedLink] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
 
-  const solution = arcadeSolutions.find((s) => s.slug === slug) || arcadeSolutions[0];
+  const solution = (arcadeSolutions || []).find((s) => s.slug === slug) || (arcadeSolutions || [])[0];
 
   if (!solution) {
     return (
@@ -47,6 +47,10 @@ export const ArcadeDetailPage: React.FC<ArcadeDetailPageProps> = ({ slug, naviga
       </div>
     );
   }
+
+  const prerequisites = Array.isArray(solution.prerequisites) ? solution.prerequisites : [];
+  const steps = Array.isArray(solution.steps) ? solution.steps : [];
+  const importantCommands = Array.isArray(solution.importantCommands) ? solution.importantCommands : [];
 
   const handleCopyCommand = (text: string, index: number) => {
     navigator.clipboard.writeText(text);
@@ -186,14 +190,14 @@ export const ArcadeDetailPage: React.FC<ArcadeDetailPageProps> = ({ slug, naviga
       </div>
 
       {/* Prerequisites Callout */}
-      {solution.prerequisites && solution.prerequisites.length > 0 && (
+      {prerequisites.length > 0 && (
         <div className="p-4 rounded-2xl bg-blue-50/70 border border-blue-200 dark:bg-indigo-950/30 dark:border-indigo-500/20 mb-8">
           <h4 className="text-xs font-bold text-blue-700 dark:text-indigo-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
             <AlertCircle className="w-4 h-4 text-blue-600 dark:text-indigo-400" />
             Prerequisites & Lab Setup
           </h4>
           <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-700 dark:text-slate-300">
-            {solution.prerequisites.map((pre, i) => (
+            {prerequisites.map((pre, i) => (
               <li key={i} className="flex items-center gap-2">
                 <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 dark:text-indigo-400 shrink-0" />
                 <span>{pre}</span>
@@ -210,7 +214,7 @@ export const ArcadeDetailPage: React.FC<ArcadeDetailPageProps> = ({ slug, naviga
           <span>Step-by-Step Instructions</span>
         </h2>
 
-        {solution.steps.map((step, idx) => (
+        {steps.map((step, idx) => (
           <div
             key={step.stepNumber}
             className="glass-card p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-sm relative overflow-hidden"
@@ -291,7 +295,7 @@ export const ArcadeDetailPage: React.FC<ArcadeDetailPageProps> = ({ slug, naviga
       </div>
 
       {/* INLINE ADMIN ARCADE LAB STUDIO MODAL */}
-      {isEditOpen && (
+      {isEditOpen && isAdmin && (
         <ArcadeEditorModal
           isOpen={isEditOpen}
           onClose={() => setIsEditOpen(false)}

@@ -203,7 +203,9 @@ function AppContent() {
 
       {/* Main Content Router */}
       <main className="flex-1 relative z-10">
-        {renderRoute()}
+        <ErrorBoundary isolate>
+          {renderRoute()}
+        </ErrorBoundary>
       </main>
 
       {/* Mobile Bottom Navigation (Hidden on admin studio) */}

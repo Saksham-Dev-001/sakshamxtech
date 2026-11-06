@@ -19,7 +19,8 @@ import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { SEOHead } from '../components/shared/SEOHead';
 import { formatFullDate, getRelativeTimeString } from '../utils/realTime';
-import { UnstopEditorModal, extractYouTubeVideoId } from './admin/ContentEditorModals';
+import { extractYouTubeVideoId } from '../services/youtubeService';
+import { UnstopEditorModal } from './admin/ContentEditorModals';
 
 interface UnstopDetailPageProps {
   slug: string;
@@ -34,7 +35,7 @@ export const UnstopDetailPage: React.FC<UnstopDetailPageProps> = ({ slug, naviga
   const [copiedLink, setCopiedLink] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
 
-  const problem = unstopProblems.find((p) => p.slug === slug) || unstopProblems[0];
+  const problem = (unstopProblems || []).find((p) => p.slug === slug) || (unstopProblems || [])[0];
 
   if (!problem) {
     return (
@@ -42,7 +43,7 @@ export const UnstopDetailPage: React.FC<UnstopDetailPageProps> = ({ slug, naviga
         <p>Problem not found.</p>
         <button
           onClick={() => navigate('/unstop')}
-          className="mt-4 px-4 py-2 bg-emerald-500 text-slate-950 font-bold rounded-lg text-xs"
+          className="mt-4 px-4 py-2 bg-emerald-500 text-slate-950 font-bold rounded-lg text-xs cursor-pointer"
         >
           Return to POTD List
         </button>
@@ -52,8 +53,13 @@ export const UnstopDetailPage: React.FC<UnstopDetailPageProps> = ({ slug, naviga
 
   const cleanVideoId = extractYouTubeVideoId(problem.youtubeVideoId || '');
 
-  const currentCode = problem.codeSolutions.find((s) => s.language === selectedLang)?.code 
-    || problem.codeSolutions[0]?.code 
+  // Resilient array fallbacks protecting against any missing or malformed database fields
+  const codeSolutions = Array.isArray(problem.codeSolutions) ? problem.codeSolutions : [];
+  const constraints = Array.isArray(problem.constraints) ? problem.constraints : [];
+  const examples = Array.isArray(problem.examples) ? problem.examples : [];
+
+  const currentCode = codeSolutions.find((s) => s?.language === selectedLang)?.code 
+    || codeSolutions[0]?.code 
     || '// Solution in preparation';
 
   const handleCopy = () => {
@@ -196,11 +202,11 @@ export const UnstopDetailPage: React.FC<UnstopDetailPageProps> = ({ slug, naviga
         </div>
 
         {/* Constraints */}
-        {problem.constraints && problem.constraints.length > 0 && (
+        {constraints.length > 0 && (
           <div className="mt-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-xs">
             <span className="font-bold text-slate-500 uppercase tracking-wider text-[10px] block mb-1">Constraints:</span>
             <ul className="list-disc list-inside space-y-0.5 text-slate-700 dark:text-slate-300 font-mono text-[11px]">
-              {problem.constraints.map((c, i) => (
+              {constraints.map((c, i) => (
                 <li key={i}>{c}</li>
               ))}
             </ul>
@@ -208,10 +214,10 @@ export const UnstopDetailPage: React.FC<UnstopDetailPageProps> = ({ slug, naviga
         )}
 
         {/* Examples */}
-        {problem.examples && (
+        {examples.length > 0 && (
           <div className="mt-6 space-y-3">
             <h3 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Example Cases</h3>
-            {problem.examples.map((ex, i) => (
+            {examples.map((ex, i) => (
               <div key={i} className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 space-y-2 text-xs">
                 <div>
                   <span className="text-[10px] font-bold text-slate-500 uppercase">Input:</span>
@@ -278,7 +284,7 @@ export const UnstopDetailPage: React.FC<UnstopDetailPageProps> = ({ slug, naviga
         <div className="flex items-center justify-between px-3 sm:px-4 py-2.5 bg-slate-950 border-b border-slate-800 gap-2 overflow-x-auto no-scrollbar scroll-px-3">
           <div className="flex items-center gap-1.5 shrink-0">
             {(['c', 'cpp', 'java', 'python', 'javascript'] as const).map((lang) => {
-              const hasSol = problem.codeSolutions.some((s) => s.language === lang);
+              const hasSol = codeSolutions.some((s) => s?.language === lang);
               return (
                 <button
                   key={lang}
@@ -380,7 +386,7 @@ export const UnstopDetailPage: React.FC<UnstopDetailPageProps> = ({ slug, naviga
       </div>
 
       {/* INLINE ADMIN UNSTOP STUDIO MODAL */}
-      {isEditOpen && (
+      {isEditOpen && isAdmin && (
         <UnstopEditorModal
           isOpen={isEditOpen}
           onClose={() => setIsEditOpen(false)}
