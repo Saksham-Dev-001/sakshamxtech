@@ -12,6 +12,7 @@ import {
   FileText,
   Plus,
   Edit3,
+  Trash2,
   Sparkles,
   ExternalLink,
   X,
@@ -38,7 +39,7 @@ const CATEGORY_FALLBACK_IMAGES: Record<string, string> = {
 };
 
 export const BlogsPage: React.FC<BlogsPageProps> = ({ navigate }) => {
-  const { blogs, addBlog, updateBlog, trackEvent, siteSettings } = useApp();
+  const { blogs, addBlog, updateBlog, deleteBlog, trackEvent, siteSettings } = useApp();
   const { isAdmin } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
@@ -303,13 +304,29 @@ export const BlogsPage: React.FC<BlogsPageProps> = ({ navigate }) => {
                   )}
 
                   {isAdmin && (
-                    <button
-                      onClick={(e) => handleOpenEditModal(featuredArticle, e)}
-                      className="ml-auto inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-blue-50 dark:bg-slate-800 dark:hover:bg-blue-950/60 text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-300 border border-slate-200 dark:border-slate-700 text-xs font-bold transition-colors cursor-pointer"
-                    >
-                      <Edit3 className="w-3.5 h-3.5" />
-                      <span>Edit Article</span>
-                    </button>
+                    <div className="ml-auto flex items-center gap-1.5">
+                      <button
+                        onClick={(e) => handleOpenEditModal(featuredArticle, e)}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-blue-50 dark:bg-slate-800 dark:hover:bg-blue-950/60 text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-300 border border-slate-200 dark:border-slate-700 text-xs font-bold transition-colors cursor-pointer"
+                        title="Edit article"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                        <span>Edit</span>
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (window.confirm(`Permanently delete "${featuredArticle.title}" from Cloud Firestore?`)) {
+                            deleteBlog(featuredArticle.id);
+                          }
+                        }}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 text-xs font-bold transition-colors cursor-pointer"
+                        title="Delete blog article"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Delete</span>
+                      </button>
+                    </div>
                   )}
                 </div>
 
@@ -452,15 +469,29 @@ export const BlogsPage: React.FC<BlogsPageProps> = ({ navigate }) => {
                   </div>
                 )}
 
-                {/* Admin Quick Edit Shortcut Button */}
+                {/* Admin Quick Action Buttons */}
                 {isAdmin && (
-                  <button
-                    onClick={(e) => handleOpenEditModal(blog, e)}
-                    className="absolute top-3 right-3 p-1.5 rounded-lg bg-black/80 hover:bg-blue-600 text-white backdrop-blur-md border border-white/20 shadow-md transition-colors cursor-pointer"
-                    title="Edit article"
-                  >
-                    <Edit3 className="w-3.5 h-3.5" />
-                  </button>
+                  <div className="absolute top-3 right-3 flex items-center gap-1.5 z-10">
+                    <button
+                      onClick={(e) => handleOpenEditModal(blog, e)}
+                      className="p-1.5 rounded-lg bg-black/80 hover:bg-blue-600 text-white backdrop-blur-md border border-white/20 shadow-md transition-colors cursor-pointer"
+                      title="Edit article"
+                    >
+                      <Edit3 className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (window.confirm(`Permanently delete "${blog.title}" from Cloud Firestore?`)) {
+                          deleteBlog(blog.id);
+                        }
+                      }}
+                      className="p-1.5 rounded-lg bg-black/80 hover:bg-rose-600 text-white backdrop-blur-md border border-white/20 shadow-md transition-colors cursor-pointer"
+                      title="Delete article"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 )}
               </div>
 
@@ -514,6 +545,10 @@ export const BlogsPage: React.FC<BlogsPageProps> = ({ navigate }) => {
           isOpen={editorModal.isOpen}
           onClose={() => setEditorModal({ isOpen: false, data: null })}
           initialData={editorModal.data}
+          onDelete={(id) => {
+            deleteBlog(id);
+            setEditorModal({ isOpen: false, data: null });
+          }}
           onSave={handleSaveModal}
           creatorName={siteSettings.creatorName}
           creatorRole={siteSettings.creatorTitle}

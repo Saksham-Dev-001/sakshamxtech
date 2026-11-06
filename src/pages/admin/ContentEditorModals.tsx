@@ -71,6 +71,7 @@ interface StudioTopBarProps {
   onClose: () => void;
   onSave: (e: React.FormEvent) => void;
   saveLabel?: string;
+  onDelete?: () => void;
 }
 
 const StudioTopBar: React.FC<StudioTopBarProps> = ({
@@ -81,6 +82,7 @@ const StudioTopBar: React.FC<StudioTopBarProps> = ({
   onClose,
   onSave,
   saveLabel = 'Save & Publish',
+  onDelete,
 }) => {
   return (
     <header className="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-3 sm:px-8 py-2.5 sm:py-3.5 flex items-center justify-between gap-2 shadow-xs w-full max-w-full overflow-hidden">
@@ -108,6 +110,22 @@ const StudioTopBar: React.FC<StudioTopBarProps> = ({
       </div>
 
       <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+        {onDelete && (
+          <button
+            type="button"
+            onClick={() => {
+              if (window.confirm('Are you sure you want to permanently delete this item from Cloud Firestore?')) {
+                onDelete();
+              }
+            }}
+            className="inline-flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-rose-200 dark:border-rose-800 transition-colors cursor-pointer mobile-tap"
+            title="Permanently delete from Cloud Firestore"
+          >
+            <Trash2 className="w-3.5 h-3.5 shrink-0" />
+            <span className="hidden sm:inline">Delete Article</span>
+            <span className="sm:hidden">Delete</span>
+          </button>
+        )}
         <button
           type="button"
           onClick={onClose}
@@ -504,6 +522,7 @@ interface BlogModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (data: Partial<BlogPost>) => void;
+  onDelete?: (id: string) => void;
   initialData?: BlogPost | null;
   creatorName: string;
   creatorRole: string;
@@ -514,6 +533,7 @@ export const BlogEditorModal: React.FC<BlogModalProps> = ({
   isOpen,
   onClose,
   onSave,
+  onDelete,
   initialData,
   creatorName,
   creatorRole,
@@ -812,6 +832,7 @@ https://youtube.com/@sakshamxtech?sub_confirmation=1`;
         onClose={onClose}
         onSave={handleSubmit}
         saveLabel={getSaveBtnLabel()}
+        onDelete={initialData && onDelete ? () => onDelete(initialData.id) : undefined}
       />
 
       <main className="max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8 flex-1 overflow-x-hidden">

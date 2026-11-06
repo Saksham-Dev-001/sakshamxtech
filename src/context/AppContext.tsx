@@ -139,6 +139,26 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 const PREFIX = 'sakshamxtech_db_';
 
+// Persistent Deleted IDs tracking so deleted documents can NEVER resurrect
+const getDeletedIds = (collectionName: string): Set<string> => {
+  try {
+    const raw = localStorage.getItem(`${PREFIX}deleted_${collectionName}`);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return new Set(parsed);
+    }
+  } catch {}
+  return new Set();
+};
+
+const markItemAsDeleted = (collectionName: string, id: string) => {
+  try {
+    const current = getDeletedIds(collectionName);
+    current.add(id);
+    localStorage.setItem(`${PREFIX}deleted_${collectionName}`, JSON.stringify(Array.from(current)));
+  } catch {}
+};
+
 const sanitizeAvatarUrl = (url?: string): string => {
   if (!url || url.includes('unsplash') || url.includes('file_00000000') || url.includes('/assets/aistudio/')) {
     return '/assets/branding/saksham_avatar.png';
@@ -147,7 +167,7 @@ const sanitizeAvatarUrl = (url?: string): string => {
 };
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Initialize state with local storage fallback
+  // Initialize state with local storage fallback (strictly excluding any deleted items)
   const [siteSettings, setSiteSettings] = useState<SiteSettings>(() => {
     const saved = localStorage.getItem(`${PREFIX}settings`);
     if (saved) {
@@ -163,56 +183,106 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   });
 
   const [blogs, setBlogs] = useState<BlogPost[]>(() => {
+    const deleted = getDeletedIds('blogs');
     const saved = localStorage.getItem(`${PREFIX}blogs`);
-    return saved ? JSON.parse(saved) : initialBlogs;
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter((b: BlogPost) => !deleted.has(b.id));
+        }
+      } catch {}
+    }
+    return initialBlogs.filter((b) => !deleted.has(b.id));
   });
 
   const [arcadeSolutions, setArcadeSolutions] = useState<ArcadeSolution[]>(() => {
+    const deleted = getDeletedIds('arcadeSolutions');
     const saved = localStorage.getItem(`${PREFIX}arcade`);
-    return saved ? JSON.parse(saved) : initialArcadeSolutions;
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter((s: ArcadeSolution) => !deleted.has(s.id));
+        }
+      } catch {}
+    }
+    return initialArcadeSolutions.filter((s) => !deleted.has(s.id));
   });
 
   const [unstopProblems, setUnstopProblems] = useState<UnstopProblem[]>(() => {
+    const deleted = getDeletedIds('unstopProblems');
     const saved = localStorage.getItem(`${PREFIX}unstop`);
     if (saved) {
       try {
-        return JSON.parse(saved);
-      } catch {
-        return initialUnstopProblems;
-      }
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter((p: UnstopProblem) => !deleted.has(p.id));
+        }
+      } catch {}
     }
-    return initialUnstopProblems;
+    return initialUnstopProblems.filter((p) => !deleted.has(p.id));
   });
 
   const [opportunities, setOpportunities] = useState<Opportunity[]>(() => {
+    const deleted = getDeletedIds('opportunities');
     const saved = localStorage.getItem(`${PREFIX}opportunities`);
-    return saved ? JSON.parse(saved) : initialOpportunities;
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter((o: Opportunity) => !deleted.has(o.id));
+        }
+      } catch {}
+    }
+    return initialOpportunities.filter((o) => !deleted.has(o.id));
   });
 
   const [swags, setSwags] = useState<SwagItem[]>(() => {
+    const deleted = getDeletedIds('swags');
     const saved = localStorage.getItem(`${PREFIX}swags`);
-    return saved ? JSON.parse(saved) : initialSwags;
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter((s: SwagItem) => !deleted.has(s.id));
+        }
+      } catch {}
+    }
+    return initialSwags.filter((s) => !deleted.has(s.id));
   });
 
   const [cLessons, setCLessons] = useState<CLesson[]>(() => {
+    const deleted = getDeletedIds('cLessons');
     const saved = localStorage.getItem(`${PREFIX}clessons`);
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length >= initialCLessons.length) {
-          return parsed;
+          return parsed.filter((l: CLesson) => !deleted.has(l.id));
         }
         // If localStorage has fewer lessons, merge initialCLessons so all 30 are available!
         const existingMap = new Map<string, CLesson>(parsed.map((l: CLesson) => [l.id, l]));
-        return initialCLessons.map((initL) => existingMap.get(initL.id) || initL);
+        return initialCLessons
+          .filter((initL) => !deleted.has(initL.id))
+          .map((initL) => existingMap.get(initL.id) || initL);
       } catch {}
     }
-    return initialCLessons;
+    return initialCLessons.filter((l) => !deleted.has(l.id));
   });
 
   const [resources, setResources] = useState<ResourceItem[]>(() => {
+    const deleted = getDeletedIds('resources');
     const saved = localStorage.getItem(`${PREFIX}resources`);
-    return saved ? JSON.parse(saved) : initialResources;
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter((r: ResourceItem) => !deleted.has(r.id));
+        }
+      } catch {}
+    }
+    return initialResources.filter((r) => !deleted.has(r.id));
   });
 
   const [arcadeCalculatorConfig, setArcadeCalculatorConfig] = useState<ArcadeCalculatorConfig>(() => {
@@ -416,48 +486,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return result;
   };
 
-  /**
-   * Smartly merges cloud items with local state:
-   * - Preserves locally modified or created items whose updatedAt timestamp is newer than cloud.
-   * - Immediately pushes the newer local item to Firestore so the cloud stays in sync.
-   * - Guarantees that refreshing the page never "undoes" or resets newly edited blogs/cards.
-   */
-  const mergeCollectionSmart = <T extends { id: string; updatedAt?: number }>(
-    localList: T[], 
-    cloudList: T[],
-    collectionName: string
-  ): T[] => {
-    const map = new Map<string, T>();
-    cloudList.forEach((item) => {
-      map.set(item.id, item);
-    });
-
-    localList.forEach((localItem) => {
-      const cloudItem = map.get(localItem.id);
-      if (!cloudItem) {
-        // Preserve locally created items so they never disappear if cloud write is queued or pending
-        map.set(localItem.id, localItem);
-        saveItemToFirestore(collectionName, localItem).catch(() => {});
-      } else if ((localItem.updatedAt || 0) > (cloudItem.updatedAt || 0)) {
-        map.set(localItem.id, localItem);
-        saveItemToFirestore(collectionName, localItem).catch(() => {});
-      }
-    });
-
-    if (collectionName === 'cLessons') {
-      initialCLessons.forEach((initL) => {
-        if (!map.has(initL.id)) {
-          map.set(initL.id, initL as unknown as T);
-          saveItemToFirestore(collectionName, initL).catch(() => {});
-        }
-      });
-      return (Array.from(map.values()) as unknown as CLesson[])
-        .sort((a, b) => (a.dayNumber || 0) - (b.dayNumber || 0)) as unknown as T[];
-    }
-
-    return Array.from(map.values());
-  };
-
   const hydrateCollection = async <T extends { id: string; updatedAt?: number }>(
     colName: string,
     fallbackItems: T[],
@@ -467,24 +495,50 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   ) => {
     try {
       const cloudItems = await fetchCollectionFromFirestore<T>(colName);
-      if ((!cloudItems || cloudItems.length === 0) && forceSeed) {
-        // Auto-seed this collection to Firestore so it is guaranteed to exist on Firebase!
-        const toSeed = fallbackItems;
-        for (const item of toSeed) {
-          await saveItemToFirestore(colName, item);
+      const deleted = getDeletedIds(colName);
+
+      if (cloudItems !== null) {
+        // Firestore is reachable and responded!
+        if (cloudItems.length === 0) {
+          const initKey = `${PREFIX}has_seeded_${colName}`;
+          const alreadySeeded = localStorage.getItem(initKey);
+          if (!alreadySeeded && forceSeed) {
+            // First-time auto-seed only on clean empty database
+            const toSeed = fallbackItems.filter((item) => !deleted.has(item.id));
+            for (const item of toSeed) {
+              await saveItemToFirestore(colName, item);
+            }
+            try { localStorage.setItem(initKey, 'true'); } catch {}
+            setter(toSeed);
+            try { localStorage.setItem(localStorageKey, JSON.stringify(toSeed)); } catch {}
+            return;
+          }
+          // If already seeded in the past and Firestore returned 0 docs, user deleted them all!
+          setter([]);
+          try { localStorage.setItem(localStorageKey, JSON.stringify([])); } catch {}
+          return;
         }
-        setter(toSeed);
-        try {
-          localStorage.setItem(localStorageKey, JSON.stringify(toSeed));
-        } catch {}
-      } else if (cloudItems && cloudItems.length > 0) {
-        setter((local) => {
-          const merged = mergeCollectionSmart(local, cloudItems, colName);
-          try {
-            localStorage.setItem(localStorageKey, JSON.stringify(merged));
-          } catch {}
-          return merged;
-        });
+
+        // Firestore has data: Cloud items are AUTHORITATIVE!
+        // Cloud items that are not deleted are kept:
+        let authoritative = cloudItems.filter((item) => !deleted.has(item.id));
+
+        // For cLessons, ensure all 30 lessons exist if not explicitly deleted
+        if (colName === 'cLessons') {
+          const map = new Map<string, CLesson>();
+          (authoritative as unknown as CLesson[]).forEach((l) => map.set(l.id, l));
+          initialCLessons.forEach((initL) => {
+            if (!map.has(initL.id) && !deleted.has(initL.id)) {
+              map.set(initL.id, initL);
+              saveItemToFirestore('cLessons', initL).catch(() => {});
+            }
+          });
+          authoritative = (Array.from(map.values()).sort((a, b) => (a.dayNumber || 0) - (b.dayNumber || 0))) as unknown as T[];
+        }
+
+        try { localStorage.setItem(`${PREFIX}has_seeded_${colName}`, 'true'); } catch {}
+        setter(authoritative);
+        try { localStorage.setItem(localStorageKey, JSON.stringify(authoritative)); } catch {}
       }
     } catch (err) {
       console.warn(`Firestore collection hydration warning for ${colName}:`, err);
@@ -502,7 +556,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       setCloudSyncStatus('syncing');
 
-      // Hydrate all collections in parallel, auto-seeding any collection that is empty on Firestore!
+      // Sync cloud deleted records metadata so cross-device deletions are immediately recognized
+      try {
+        const cloudDeleted = await fetchDocFromFirestore<Record<string, number | boolean>>('appConfig', 'deletedRecords');
+        if (cloudDeleted && typeof cloudDeleted === 'object') {
+          Object.keys(cloudDeleted).forEach((delId) => {
+            if (delId.startsWith('blog-') || delId.startsWith('blog_')) markItemAsDeleted('blogs', delId);
+            else if (delId.startsWith('arc-')) markItemAsDeleted('arcadeSolutions', delId);
+            else if (delId.startsWith('uns-')) markItemAsDeleted('unstopProblems', delId);
+            else if (delId.startsWith('opp-')) markItemAsDeleted('opportunities', delId);
+            else if (delId.startsWith('swag-')) markItemAsDeleted('swags', delId);
+            else if (delId.startsWith('c-')) markItemAsDeleted('cLessons', delId);
+            else if (delId.startsWith('res-')) markItemAsDeleted('resources', delId);
+            else markItemAsDeleted('blogs', delId);
+          });
+        }
+      } catch {}
+
+      // Hydrate all collections in parallel from Firestore
       await Promise.all([
         hydrateCollection<BlogPost>(
           'blogs',
@@ -532,7 +603,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           `${PREFIX}opportunities`,
           forceSeedIfEmpty
         ),
-        // Swags: guarantees that swags is created and populated directly on Firestore
         hydrateCollection<SwagItem>(
           'swags',
           swags.length > 0 ? swags : initialSwags,
@@ -604,7 +674,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  // Real-time automatic 2-way listeners for all collections
+  // Real-time automatic listeners for all collections (authoritative cloud snapshot, strictly no resurrecting)
   useEffect(() => {
     let unsubs: (() => void)[] = [];
 
@@ -617,13 +687,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // Real-time listener for Blogs
       const unsubB = subscribeToCollection<BlogPost>('blogs', (items) => {
         if (items) {
-          setBlogs((local) => {
-            const merged = mergeCollectionSmart(local, items, 'blogs');
-            try {
-              localStorage.setItem(`${PREFIX}blogs`, JSON.stringify(merged));
-            } catch {}
-            return merged;
-          });
+          const deleted = getDeletedIds('blogs');
+          const clean = items.filter((b) => !deleted.has(b.id));
+          setBlogs(clean);
+          try {
+            localStorage.setItem(`${PREFIX}blogs`, JSON.stringify(clean));
+          } catch {}
           setLastCloudSyncTime(new Date().toLocaleTimeString('en-US'));
         }
       });
@@ -632,13 +701,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // Real-time listener for Arcade Solutions
       const unsubA = subscribeToCollection<ArcadeSolution>('arcadeSolutions', (items) => {
         if (items) {
-          setArcadeSolutions((local) => {
-            const merged = mergeCollectionSmart(local, items, 'arcadeSolutions');
-            try {
-              localStorage.setItem(`${PREFIX}arcade`, JSON.stringify(merged));
-            } catch {}
-            return merged;
-          });
+          const deleted = getDeletedIds('arcadeSolutions');
+          const clean = items.filter((s) => !deleted.has(s.id));
+          setArcadeSolutions(clean);
+          try {
+            localStorage.setItem(`${PREFIX}arcade`, JSON.stringify(clean));
+          } catch {}
           setLastCloudSyncTime(new Date().toLocaleTimeString('en-US'));
         }
       });
@@ -647,13 +715,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // Real-time listener for Unstop Problems
       const unsubU = subscribeToCollection<UnstopProblem>('unstopProblems', (items) => {
         if (items) {
-          setUnstopProblems((local) => {
-            const merged = mergeCollectionSmart(local, items, 'unstopProblems');
-            try {
-              localStorage.setItem(`${PREFIX}unstop`, JSON.stringify(merged));
-            } catch {}
-            return merged;
-          });
+          const deleted = getDeletedIds('unstopProblems');
+          const clean = items.filter((p) => !deleted.has(p.id));
+          setUnstopProblems(clean);
+          try {
+            localStorage.setItem(`${PREFIX}unstop`, JSON.stringify(clean));
+          } catch {}
           setLastCloudSyncTime(new Date().toLocaleTimeString('en-US'));
         }
       });
@@ -662,13 +729,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // Real-time listener for Opportunities
       const unsubO = subscribeToCollection<Opportunity>('opportunities', (items) => {
         if (items) {
-          setOpportunities((local) => {
-            const merged = mergeCollectionSmart(local, items, 'opportunities');
-            try {
-              localStorage.setItem(`${PREFIX}opportunities`, JSON.stringify(merged));
-            } catch {}
-            return merged;
-          });
+          const deleted = getDeletedIds('opportunities');
+          const clean = items.filter((o) => !deleted.has(o.id));
+          setOpportunities(clean);
+          try {
+            localStorage.setItem(`${PREFIX}opportunities`, JSON.stringify(clean));
+          } catch {}
           setLastCloudSyncTime(new Date().toLocaleTimeString('en-US'));
         }
       });
@@ -677,13 +743,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // Real-time listener for Swags
       const unsubS = subscribeToCollection<SwagItem>('swags', (items) => {
         if (items) {
-          setSwags((local) => {
-            const merged = mergeCollectionSmart(local, items, 'swags');
-            try {
-              localStorage.setItem(`${PREFIX}swags`, JSON.stringify(merged));
-            } catch {}
-            return merged;
-          });
+          const deleted = getDeletedIds('swags');
+          const clean = items.filter((s) => !deleted.has(s.id));
+          setSwags(clean);
+          try {
+            localStorage.setItem(`${PREFIX}swags`, JSON.stringify(clean));
+          } catch {}
           setLastCloudSyncTime(new Date().toLocaleTimeString('en-US'));
         }
       });
@@ -692,13 +757,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // Real-time listener for C Lessons
       const unsubC = subscribeToCollection<CLesson>('cLessons', (items) => {
         if (items) {
-          setCLessons((local) => {
-            const merged = mergeCollectionSmart(local, items, 'cLessons');
-            try {
-              localStorage.setItem(`${PREFIX}clessons`, JSON.stringify(merged));
-            } catch {}
-            return merged;
-          });
+          const deleted = getDeletedIds('cLessons');
+          const clean = items
+            .filter((l) => !deleted.has(l.id))
+            .sort((a, b) => (a.dayNumber || 0) - (b.dayNumber || 0));
+          setCLessons(clean);
+          try {
+            localStorage.setItem(`${PREFIX}clessons`, JSON.stringify(clean));
+          } catch {}
           setLastCloudSyncTime(new Date().toLocaleTimeString('en-US'));
         }
       });
@@ -707,13 +773,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // Real-time listener for Resources
       const unsubR = subscribeToCollection<ResourceItem>('resources', (items) => {
         if (items) {
-          setResources((local) => {
-            const merged = mergeCollectionSmart(local, items, 'resources');
-            try {
-              localStorage.setItem(`${PREFIX}resources`, JSON.stringify(merged));
-            } catch {}
-            return merged;
-          });
+          const deleted = getDeletedIds('resources');
+          const clean = items.filter((r) => !deleted.has(r.id));
+          setResources(clean);
+          try {
+            localStorage.setItem(`${PREFIX}resources`, JSON.stringify(clean));
+          } catch {}
           setLastCloudSyncTime(new Date().toLocaleTimeString('en-US'));
         }
       });
@@ -905,6 +970,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const deleteBlog = (id: string) => {
+    markItemAsDeleted('blogs', id);
     setBlogs((prev) => {
       const next = prev.filter((b) => b.id !== id);
       try {
@@ -914,6 +980,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
     setCloudSyncStatus('syncing');
     deleteItemFromFirestore('blogs', id).then(markSyncSuccess).catch(() => {});
+    saveDocToFirestore('appConfig', 'deletedRecords', { [id]: Date.now() }).catch(() => {});
   };
 
   // Arcade Solutions CRUD (Automatic Cloud Sync)
@@ -951,6 +1018,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const deleteArcadeSolution = (id: string) => {
+    markItemAsDeleted('arcadeSolutions', id);
     setArcadeSolutions((prev) => {
       const next = prev.filter((s) => s.id !== id);
       try {
@@ -960,6 +1028,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
     setCloudSyncStatus('syncing');
     deleteItemFromFirestore('arcadeSolutions', id).then(markSyncSuccess).catch(() => {});
+    saveDocToFirestore('appConfig', 'deletedRecords', { [id]: Date.now() }).catch(() => {});
   };
 
   // Unstop Problems CRUD (Automatic Cloud Sync)
@@ -997,6 +1066,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const deleteUnstopProblem = (id: string) => {
+    markItemAsDeleted('unstopProblems', id);
     setUnstopProblems((prev) => {
       const next = prev.filter((p) => p.id !== id);
       try {
@@ -1006,6 +1076,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
     setCloudSyncStatus('syncing');
     deleteItemFromFirestore('unstopProblems', id).then(markSyncSuccess).catch(() => {});
+    saveDocToFirestore('appConfig', 'deletedRecords', { [id]: Date.now() }).catch(() => {});
   };
 
   // Opportunities CRUD (Automatic Cloud Sync)
@@ -1044,6 +1115,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const deleteOpportunity = (id: string) => {
+    markItemAsDeleted('opportunities', id);
     setOpportunities((prev) => {
       const next = prev.filter((o) => o.id !== id);
       try {
@@ -1053,6 +1125,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
     setCloudSyncStatus('syncing');
     deleteItemFromFirestore('opportunities', id).then(markSyncSuccess).catch(() => {});
+    saveDocToFirestore('appConfig', 'deletedRecords', { [id]: Date.now() }).catch(() => {});
   };
 
   // Swags CRUD (Automatic Cloud Sync)
@@ -1090,6 +1163,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const deleteSwag = (id: string) => {
+    markItemAsDeleted('swags', id);
     setSwags((prev) => {
       const next = prev.filter((s) => s.id !== id);
       try {
@@ -1099,6 +1173,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
     setCloudSyncStatus('syncing');
     deleteItemFromFirestore('swags', id).then(markSyncSuccess).catch(() => {});
+    saveDocToFirestore('appConfig', 'deletedRecords', { [id]: Date.now() }).catch(() => {});
   };
 
   // C Lessons CRUD (Automatic Cloud Sync)
@@ -1136,6 +1211,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const deleteCLesson = (id: string) => {
+    markItemAsDeleted('cLessons', id);
     setCLessons((prev) => {
       const next = prev.filter((l) => l.id !== id);
       try {
@@ -1145,6 +1221,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
     setCloudSyncStatus('syncing');
     deleteItemFromFirestore('cLessons', id).then(markSyncSuccess).catch(() => {});
+    saveDocToFirestore('appConfig', 'deletedRecords', { [id]: Date.now() }).catch(() => {});
   };
 
   // Resources CRUD (Automatic Cloud Sync)
@@ -1183,9 +1260,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const deleteResource = (id: string) => {
-    setResources((prev) => prev.filter((r) => r.id !== id));
+    markItemAsDeleted('resources', id);
+    setResources((prev) => {
+      const next = prev.filter((r) => r.id !== id);
+      try {
+        localStorage.setItem(`${PREFIX}resources`, JSON.stringify(next));
+      } catch {}
+      return next;
+    });
     setCloudSyncStatus('syncing');
     deleteItemFromFirestore('resources', id).then(markSyncSuccess).catch(() => {});
+    saveDocToFirestore('appConfig', 'deletedRecords', { [id]: Date.now() }).catch(() => {});
   };
 
   // Arcade Config (Automatic Cloud Sync)

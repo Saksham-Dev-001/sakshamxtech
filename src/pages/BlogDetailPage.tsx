@@ -14,6 +14,7 @@ import {
   Award,
   Copy,
   Edit3,
+  Trash2,
   List,
   ChevronRight,
   Eye,
@@ -32,7 +33,7 @@ interface BlogDetailPageProps {
 }
 
 export const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ slug, navigate }) => {
-  const { blogs, updateBlog, isBookmarked, toggleBookmark, trackEvent, siteSettings } = useApp();
+  const { blogs, updateBlog, deleteBlog, isBookmarked, toggleBookmark, trackEvent, siteSettings } = useApp();
   const { isAdmin } = useAuth();
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedDescLink, setCopiedDescLink] = useState(false);
@@ -212,14 +213,29 @@ export const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ slug, navigate }
 
         <div className="flex items-center gap-2">
           {isAdmin && (
-            <button
-              onClick={() => setIsEditModalOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-sm transition-all hover:scale-102 cursor-pointer"
-              title="Edit this article in Admin Studio"
-            >
-              <Edit3 className="w-3.5 h-3.5" />
-              <span>Edit Article</span>
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => setIsEditModalOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-sm transition-all hover:scale-102 cursor-pointer"
+                title="Edit this article in Admin Studio"
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+                <span>Edit Article</span>
+              </button>
+              <button
+                onClick={() => {
+                  if (window.confirm(`Are you sure you want to permanently delete "${blog.title}" from Cloud Firestore?`)) {
+                    deleteBlog(blog.id);
+                    navigate('/blogs');
+                  }
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-sm transition-all hover:scale-102 cursor-pointer"
+                title="Delete this article permanently"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Delete</span>
+              </button>
+            </div>
           )}
 
           <button
@@ -625,6 +641,11 @@ export const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ slug, navigate }
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
           initialData={blog}
+          onDelete={(id) => {
+            deleteBlog(id);
+            setIsEditModalOpen(false);
+            navigate('/blogs');
+          }}
           onSave={(updated) => {
             updateBlog(blog.id, updated);
             setIsEditModalOpen(false);

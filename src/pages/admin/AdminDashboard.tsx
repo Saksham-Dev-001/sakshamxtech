@@ -1834,7 +1834,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigate }) => {
 
                           <button
                             onClick={() => {
-                              if (confirm(`Delete blog "${b.title}"?`)) deleteBlog(b.id);
+                              if (confirm(`Permanently delete blog "${b.title}" from Cloud Firestore?`)) {
+                                deleteBlog(b.id);
+                                triggerSuccessAlert(`Article "${b.title}" permanently deleted from Cloud Firestore.`);
+                              }
                             }}
                             className="p-2 text-slate-600 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs transition-colors shadow-xs cursor-pointer"
                             title="Delete blog"
@@ -3173,6 +3176,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigate }) => {
         creatorName={siteSettings.creatorName}
         creatorRole={siteSettings.creatorTitle}
         creatorAvatar={siteSettings.creatorAvatarUrl || ''}
+        onDelete={(id) => {
+          deleteBlog(id);
+          setBlogModal({ isOpen: false, data: null });
+          triggerSuccessAlert('Article permanently deleted from Cloud Firestore!');
+        }}
         onSave={(data) => {
           if (blogModal.data) {
             updateBlog(blogModal.data.id, data);
