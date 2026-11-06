@@ -90,7 +90,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ navigate }) => {
       icon: <FileText className="w-6 h-6 text-blue-600" />,
       title: 'Featured Website Article & SEO Blog',
       badge: 'Long-term SEO',
-      desc: 'Permanent technical article on SakshamXTech.com with step-by-step instructions, official registration buttons, and backlink to your product.',
+      desc: 'Permanent technical article on SakshamXTech with step-by-step instructions, official registration buttons, and backlink to your product.',
       deliverables: ['High-ranking SEO article', 'Dedicated "Official Link" hero action card', 'Permanent index on Google Search', 'Featured on homepage carousel'],
     },
     {

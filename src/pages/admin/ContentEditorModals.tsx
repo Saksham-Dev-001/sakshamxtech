@@ -38,7 +38,7 @@ import {
   CLesson,
   ResourceItem,
 } from '../../types';
-import { formatCleanDateTime, formatDelhiDateTime, getDelhiCurrentDateTimeLocal, getTodayISODate, formatLocalDateIso } from '../../utils/realTime';
+import { formatCleanDateTime, formatDelhiDateTime, getDelhiCurrentDateTimeLocal, getTodayISODate, formatLocalDateIso, getSiteOrigin } from '../../utils/realTime';
 import { MarkdownArticleReader } from '../../components/shared/MarkdownArticleReader';
 
 // ============================================================================
@@ -467,7 +467,7 @@ const MarkdownToolbar: React.FC<MarkdownToolbarProps> = ({ onInsert, activeTab =
           <div className="w-[1px] h-4 bg-slate-300 dark:bg-slate-700 mx-0.5" />
           <button
             type="button"
-            onClick={() => onInsert('[', '](https://sakshamxtech.com)', 'Click Here')}
+            onClick={() => onInsert('[', `](${getSiteOrigin()})`, 'Click Here')}
             className="px-2 py-1 rounded-lg hover:bg-white dark:hover:bg-slate-700 text-blue-600 dark:text-blue-400 font-medium cursor-pointer"
             title="Insert Link"
           >
@@ -534,6 +534,83 @@ export const BlogEditorModal: React.FC<BlogModalProps> = ({
   const [scheduledAt, setScheduledAt] = useState(() => getDelhiCurrentDateTimeLocal());
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [editorTab, setEditorTab] = useState<'write' | 'preview'>('write');
+  const [draftAvailable, setDraftAvailable] = useState<any | null>(null);
+
+  const siteUrl = getSiteOrigin();
+
+  // Check if draft exists on open
+  useEffect(() => {
+    if (isOpen && !initialData) {
+      try {
+        const raw = localStorage.getItem('sx_blog_draft');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && (parsed.title || parsed.content)) {
+            setDraftAvailable(parsed);
+          }
+        }
+      } catch {}
+    } else {
+      setDraftAvailable(null);
+    }
+  }, [isOpen, initialData]);
+
+  // Auto-save draft when editing a new article
+  useEffect(() => {
+    if (!isOpen || initialData) return;
+    if (!title && (!content || content.startsWith('# Write your article here'))) return;
+
+    const timer = setTimeout(() => {
+      try {
+        localStorage.setItem('sx_blog_draft', JSON.stringify({
+          title,
+          slug,
+          category,
+          summary,
+          content,
+          coverImage,
+          youtubeVideoId,
+          officialLink,
+          officialLinkLabel,
+          deadline,
+          perks,
+          eligibility,
+          readTimeMinutes,
+          tags,
+          postStatus,
+          savedAt: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+        }));
+      } catch {}
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, [isOpen, initialData, title, slug, category, summary, content, coverImage, youtubeVideoId, officialLink, officialLinkLabel, deadline, perks, eligibility, readTimeMinutes, tags, postStatus]);
+
+  const handleRestoreDraft = () => {
+    if (!draftAvailable) return;
+    setTitle(draftAvailable.title || '');
+    setSlug(draftAvailable.slug || '');
+    setCategory(draftAvailable.category || 'Google Cloud');
+    setSummary(draftAvailable.summary || '');
+    setContent(draftAvailable.content || '');
+    setCoverImage(draftAvailable.coverImage || '');
+    setYoutubeVideoId(draftAvailable.youtubeVideoId || '');
+    setOfficialLink(draftAvailable.officialLink || '');
+    setOfficialLinkLabel(draftAvailable.officialLinkLabel || '');
+    setDeadline(draftAvailable.deadline || '');
+    setPerks(draftAvailable.perks || '');
+    setEligibility(draftAvailable.eligibility || '');
+    setReadTimeMinutes(draftAvailable.readTimeMinutes || 8);
+    setTags(draftAvailable.tags || 'Google Cloud, Tech');
+    setDraftAvailable(null);
+  };
+
+  const handleDiscardDraft = () => {
+    try {
+      localStorage.removeItem('sx_blog_draft');
+    } catch {}
+    setDraftAvailable(null);
+  };
 
   useEffect(() => {
     if (initialData) {
@@ -651,15 +728,40 @@ export const BlogEditorModal: React.FC<BlogModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) return alert('Please enter an article title');
+    const cleanTitle = title.trim();
+    if (!cleanTitle) return alert('Please enter an article title');
+
+    const cleanContent = content.trim();
+    if (!cleanContent) return alert('Please write some content in the article body');
+
+    // Safe summary: never allow empty summary to reach Firestore (guarantees isBoundedString 1-2000 chars passes)
+    const cleanSummary = summary.trim() || 
+      (cleanContent.replace(/[#*`_~>[\]()!-]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 180) + '...') ||
+      `${cleanTitle} - Official guide and walkthrough on SakshamXTech.`;
+
+    // Safe cover image: never allow empty cover image or base64 > 1000 chars to reach Firestore
+    let cleanCover = coverImage.trim();
+    if (cleanCover.startsWith('data:image/') && cleanCover.length > 1000) {
+      alert('Cover image is too large as a direct file upload. Please paste a direct image URL or link a YouTube video.');
+      return;
+    }
+    if (!cleanCover) {
+      cleanCover = cleanVideoId 
+        ? `https://i.ytimg.com/vi/${cleanVideoId}/hqdefault.jpg`
+        : (initialData?.coverImage || 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1200&q=80');
+    }
+
+    try {
+      localStorage.removeItem('sx_blog_draft');
+    } catch {}
 
     onSave({
-      title: title.trim(),
-      slug: slug.trim() || title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      title: cleanTitle,
+      slug: slug.trim() || cleanTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
       category,
-      summary: summary.trim(),
-      content: content.trim(),
-      coverImage: coverImage.trim() || (cleanVideoId ? `https://i.ytimg.com/vi/${cleanVideoId}/hqdefault.jpg` : (initialData?.coverImage || '')),
+      summary: cleanSummary,
+      content: cleanContent,
+      coverImage: cleanCover,
       youtubeVideoId: cleanVideoId || '',
       officialLink: officialLink.trim() || '',
       officialLinkLabel: officialLinkLabel.trim() || '',
@@ -685,7 +787,7 @@ export const BlogEditorModal: React.FC<BlogModalProps> = ({
   };
 
   const descriptionSnippet = `📌 Official Program Link & Guide:
-https://sakshamxtech.com/blogs/${slug || 'guide'}
+${siteUrl}/blogs/${slug || 'guide'}
 
 ${officialLink ? `🔗 Direct Application Portal:
 ${officialLink}
@@ -709,6 +811,38 @@ https://youtube.com/@sakshamxtech?sub_confirmation=1`;
       />
 
       <main className="max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8 flex-1 overflow-x-hidden">
+        {draftAvailable && (
+          <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-purple-500/10 border border-blue-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs animate-in fade-in">
+            <div className="flex items-center gap-2.5">
+              <Sparkles className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+              <div>
+                <span className="font-bold text-slate-900 dark:text-white block">
+                  Unsaved Draft Found {draftAvailable.savedAt ? `(Saved at ${draftAvailable.savedAt})` : ''}
+                </span>
+                <span className="text-slate-600 dark:text-slate-400 text-[11px]">
+                  "{draftAvailable.title || 'Untitled Article'}" — Would you like to restore your unsaved writing?
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={handleRestoreDraft}
+                className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-xs transition-all cursor-pointer"
+              >
+                Restore Draft
+              </button>
+              <button
+                type="button"
+                onClick={handleDiscardDraft}
+                className="px-3 py-1.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold rounded-xl transition-all cursor-pointer"
+              >
+                Discard
+              </button>
+            </div>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
           
           {/* LEFT COLUMN: Main Editorial Content (8 cols) */}
@@ -735,7 +869,7 @@ https://youtube.com/@sakshamxtech?sub_confirmation=1`;
                   URL Slug Preview
                 </label>
                 <div className="flex items-center gap-1.5 text-xs font-mono text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 min-w-0">
-                  <span className="text-slate-400 select-none truncate shrink-0 max-w-[130px] sm:max-w-none"><span className="hidden sm:inline">https://sakshamxtech.com</span>/blogs/</span>
+                  <span className="text-slate-400 select-none truncate shrink-0 max-w-[200px] sm:max-w-none"><span className="hidden sm:inline">{siteUrl}</span>/blogs/</span>
                   <input
                     type="text"
                     value={slug}
@@ -1216,9 +1350,11 @@ export const ArcadeEditorModal: React.FC<ArcadeModalProps> = ({
     onClose();
   };
 
+  const siteUrl = getSiteOrigin();
+
   const arcadeSnippet = `⭐ Google Cloud Arcade Solution - ${labCode.toUpperCase()}: ${title}
 📌 Step-by-Step Commands & Verification:
-https://sakshamxtech.com/arcade/${slug || labCode.toLowerCase()}
+${siteUrl}/arcade/${slug || labCode.toLowerCase()}
 
 ⏱️ Estimated Lab Time: ${durationMinutes} mins | Points: 1 Arcade Point
 🔔 Subscribe for all Arcade & Trivia Answers:
@@ -1281,7 +1417,7 @@ https://youtube.com/@sakshamxtech?sub_confirmation=1`;
                   Lab URL Slug
                 </label>
                 <div className="flex items-center gap-1.5 text-xs font-mono text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 min-w-0">
-                  <span className="text-slate-400 select-none truncate shrink-0 max-w-[130px] sm:max-w-none"><span className="hidden sm:inline">https://sakshamxtech.com</span>/arcade/</span>
+                  <span className="text-slate-400 select-none truncate shrink-0 max-w-[200px] sm:max-w-none"><span className="hidden sm:inline">{siteUrl}</span>/arcade/</span>
                   <input
                     type="text"
                     value={slug}
@@ -1513,9 +1649,11 @@ export const UnstopEditorModal: React.FC<UnstopModalProps> = ({
     onClose();
   };
 
+  const siteUrl = getSiteOrigin();
+
   const potdSnippet = `🔥 Unstop POTD Day ${dayNumber} Solution - ${title}
 📌 View Complete Code (C, C++, Python) & Logic:
-https://sakshamxtech.com/unstop/day-${dayNumber}
+${siteUrl}/unstop/day-${dayNumber}
 
 💡 Difficulty: ${difficulty}
 🔔 Subscribe for Daily Unstop POTD & Contest Solutions:
@@ -1783,9 +1921,11 @@ export const OpportunityEditorModal: React.FC<OpportunityModalProps> = ({
     onClose();
   };
 
+  const siteUrl = getSiteOrigin();
+
   const oppSnippet = `🚀 New Tech Opportunity: ${title} (${company})
 🔗 Direct Application Portal:
-${applyUrl || 'https://sakshamxtech.com/opportunities'}
+${applyUrl || `${siteUrl}/opportunities`}
 
 ⏰ Deadline: ${deadline}
 🎁 Perks & Benefits: ${benefits}
@@ -2315,9 +2455,11 @@ export const CLessonEditorModal: React.FC<CLessonModalProps> = ({
     onClose();
   };
 
+  const siteUrl = getSiteOrigin();
+
   const cLessonSnippet = `💻 C Programming Academy Day ${dayNumber} - ${title}
 📌 Run Code in In-Browser Compiler & Notes:
-https://sakshamxtech.com/c-academy/day-${dayNumber}
+${siteUrl}/c-academy/day-${dayNumber}
 
 ⏱️ Duration: ${durationMinutes} mins
 🔔 Subscribe for Full C Masterclass (Basics to Low-Level Memory):
@@ -2546,9 +2688,11 @@ export const ResourceEditorModal: React.FC<ResourceModalProps> = ({
     onClose();
   };
 
+  const siteUrl = getSiteOrigin();
+
   const resourceSnippet = `📚 Download Free Study Material: ${title}
 📌 Direct Download & PDF Notes:
-${downloadUrl || 'https://sakshamxtech.com/resources'}
+${downloadUrl || `${siteUrl}/resources`}
 
 📄 Format: ${fileFormat} (${fileSize}) | Category: ${category}
 🔔 Subscribe for Free Engineering Notes & Handbooks:

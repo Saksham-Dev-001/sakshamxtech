@@ -3178,14 +3178,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigate }) => {
             updateBlog(blogModal.data.id, data);
             triggerSuccessAlert(`Article "${data.title || blogModal.data.title}" updated & auto-synced to Cloud Firestore!`);
           } else {
+            const cleanSummary = data.summary?.trim() || data.title || 'Official tech article on SakshamXTech';
+            const cleanCover = data.coverImage?.trim() || (data.youtubeVideoId ? `https://i.ytimg.com/vi/${data.youtubeVideoId}/hqdefault.jpg` : 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1200&q=80');
+
             addBlog({
               title: data.title || 'Untitled Article',
               slug: data.slug || 'untitled',
-              summary: data.summary || '',
+              summary: cleanSummary,
               category: data.category || 'Google Cloud',
               content: data.content || '',
-              tags: data.tags || ['Tech'],
-              coverImage: data.coverImage || '',
+              tags: (data.tags && data.tags.length > 0) ? data.tags : ['Tech'],
+              coverImage: cleanCover,
               youtubeVideoId: data.youtubeVideoId,
               author: data.author || {
                 name: siteSettings.creatorName,
@@ -3302,7 +3305,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigate }) => {
               eligibility: data.eligibility || 'Open to students.',
               benefits: data.benefits || ['Certificate', 'Experience'],
               deadline: data.deadline || '2026-12-31',
-              officialUrl: data.officialUrl || 'https://sakshamxtech.com',
+              officialUrl: data.officialUrl || 'https://sakshamxtech.vercel.app',
               status: data.status || 'Active',
               featured: data.featured ?? false,
               postedDate: data.postedDate || getTodayISODate(),

@@ -423,7 +423,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     localList.forEach((localItem) => {
       const cloudItem = map.get(localItem.id);
-      if (cloudItem && (localItem.updatedAt || 0) > (cloudItem.updatedAt || 0)) {
+      if (!cloudItem) {
+        // Preserve locally created items so they never disappear if cloud write is queued or pending
+        map.set(localItem.id, localItem);
+        saveItemToFirestore(collectionName, localItem).catch(() => {});
+      } else if ((localItem.updatedAt || 0) > (cloudItem.updatedAt || 0)) {
         map.set(localItem.id, localItem);
         saveItemToFirestore(collectionName, localItem).catch(() => {});
       }

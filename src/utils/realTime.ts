@@ -412,3 +412,14 @@ export function generateDateWiseAnalytics(timeframe: 'today' | '7d' | '30d' | 'y
     },
   };
 }
+
+/**
+ * Returns the current live website origin dynamically:
+ * e.g. "https://sakshamxtech.vercel.app" or custom domain "https://sakshamxtech.com"
+ */
+export function getSiteOrigin(): string {
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    return window.location.origin;
+  }
+  return 'https://sakshamxtech.vercel.app';
+}

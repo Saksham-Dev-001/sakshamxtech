@@ -67,7 +67,7 @@ export const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({ navigate }
         eligibility: data.eligibility || 'Open to students.',
         benefits: data.benefits || ['Certificate', 'Experience'],
         deadline: data.deadline || '2026-12-31',
-        officialUrl: data.officialUrl || 'https://sakshamxtech.com',
+        officialUrl: data.officialUrl || 'https://sakshamxtech.vercel.app',
         status: data.status || 'Active',
         featured: data.featured ?? false,
         postedDate: data.postedDate || getTodayISODate(),
