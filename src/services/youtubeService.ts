@@ -52,9 +52,12 @@ export function extractYouTubeVideoId(input: string): string | null {
   if (!input) return null;
   const clean = input.trim();
 
-  // Pattern: yt:video:JVE_m3awBTU (from YouTube RSS guid)
+  // Pattern: yt:video:JVE_m3awBTU or yt-JVE_m3awBTU
   if (clean.startsWith('yt:video:')) {
     return clean.replace('yt:video:', '').trim();
+  }
+  if (clean.startsWith('yt-')) {
+    return clean.replace('yt-', '').trim();
   }
 
   // Pattern: https://youtu.be/JVE_m3awBTU

@@ -196,7 +196,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const [cLessons, setCLessons] = useState<CLesson[]>(() => {
     const saved = localStorage.getItem(`${PREFIX}clessons`);
-    return saved ? JSON.parse(saved) : initialCLessons;
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length >= initialCLessons.length) {
+          return parsed;
+        }
+        // If localStorage has fewer lessons, merge initialCLessons so all 30 are available!
+        const existingMap = new Map<string, CLesson>(parsed.map((l: CLesson) => [l.id, l]));
+        return initialCLessons.map((initL) => existingMap.get(initL.id) || initL);
+      } catch {}
+    }
+    return initialCLessons;
   });
 
   const [resources, setResources] = useState<ResourceItem[]>(() => {
@@ -432,6 +443,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         saveItemToFirestore(collectionName, localItem).catch(() => {});
       }
     });
+
+    if (collectionName === 'cLessons') {
+      initialCLessons.forEach((initL) => {
+        if (!map.has(initL.id)) {
+          map.set(initL.id, initL as unknown as T);
+          saveItemToFirestore(collectionName, initL).catch(() => {});
+        }
+      });
+      return (Array.from(map.values()) as unknown as CLesson[])
+        .sort((a, b) => (a.dayNumber || 0) - (b.dayNumber || 0)) as unknown as T[];
+    }
 
     return Array.from(map.values());
   };

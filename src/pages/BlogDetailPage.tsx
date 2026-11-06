@@ -107,10 +107,40 @@ export const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ slug, navigate }
   const cleanVideoId = extractYouTubeVideoId(blog.youtubeVideoId || '');
   const toc = useMemo(() => extractTableOfContents(blog.content), [blog.content]);
 
-  const handleShareLink = () => {
-    navigator.clipboard.writeText(window.location.href);
-    setCopiedLink(true);
-    setTimeout(() => setCopiedLink(false), 2000);
+  const handleShareLink = async () => {
+    const shareUrl = window.location.href;
+
+    // 1. Mobile devices: Native share sheet opens with WhatsApp, Telegram, Instagram, Messages, etc.
+    const isMobile = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+    if (isMobile && navigator.share) {
+      try {
+        await navigator.share({
+          title: blog.title,
+          text: `${blog.title}\n\n${blog.summary || ''}`,
+          url: shareUrl,
+        });
+        return;
+      } catch (err: any) {
+        if (err.name === 'AbortError') return; // User simply closed the share sheet
+      }
+    }
+
+    // 2. PC / Desktop: Direct 1-click clipboard copy
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2500);
+    } catch {
+      const input = document.createElement('input');
+      input.value = shareUrl;
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand('copy');
+      document.body.removeChild(input);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2500);
+    }
   };
 
   const handleCopyYouTubeDescriptionLink = () => {
@@ -135,7 +165,9 @@ export const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ slug, navigate }
     <div className="py-6 sm:py-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
       <SEOHead
         title={`${blog.title} | SakshamXTech`}
-        description={blog.summary}
+        description={blog.summary || blog.content.slice(0, 160)}
+        canonicalPath={`/blogs/${blog.slug}`}
+        image={blog.coverImage}
       />
 
       {/* TOP READING PROGRESS BAR (FIXED HEADER STRIP) */}
@@ -204,10 +236,15 @@ export const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ slug, navigate }
 
           <button
             onClick={handleShareLink}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-cyan-300 shadow-2xs transition-colors cursor-pointer"
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs shadow-2xs transition-all cursor-pointer ${
+              copiedLink
+                ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300 font-bold scale-105'
+                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-cyan-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+            }`}
+            title="Share article (Mobile share options / PC 1-click copy)"
           >
-            {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Share2 className="w-3.5 h-3.5" />}
-            <span className="font-semibold">{copiedLink ? 'Copied!' : 'Share'}</span>
+            {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> : <Share2 className="w-3.5 h-3.5" />}
+            <span className="font-semibold">{copiedLink ? 'Link Copied!' : 'Share'}</span>
           </button>
         </div>
       </div>
@@ -454,6 +491,49 @@ export const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ slug, navigate }
             ))}
           </div>
         )}
+      </div>
+
+      {/* 6.5 SOCIAL SHARING BAR */}
+      <div className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs">
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600 dark:text-cyan-400">
+            <Share2 className="w-4 h-4" />
+          </div>
+          <div>
+            <h4 className="text-xs font-bold text-slate-900 dark:text-white">
+              Share this guide with friends &amp; batchmates
+            </h4>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+              Help fellow learners discover verified solutions and swags
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 flex-wrap justify-center sm:justify-end w-full sm:w-auto">
+          <a
+            href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`🔥 *${blog.title}*\nRead full guide on SakshamXTech: ${typeof window !== 'undefined' ? window.location.href : ''}`)}`}
+            target="_blank"
+            rel="noreferrer"
+            className="px-3.5 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+          >
+            <span>WhatsApp</span>
+          </a>
+          <a
+            href={`https://t.me/share/url?url=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}&text=${encodeURIComponent(`🔥 ${blog.title}`)}`}
+            target="_blank"
+            rel="noreferrer"
+            className="px-3.5 py-2 rounded-xl bg-sky-50 dark:bg-sky-950/60 hover:bg-sky-100 dark:hover:bg-sky-900/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+          >
+            <span>Telegram</span>
+          </a>
+          <button
+            onClick={handleShareLink}
+            className="px-3.5 py-2 rounded-xl bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+          >
+            {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+            <span>{copiedLink ? 'Link Copied!' : 'Copy Link'}</span>
+          </button>
+        </div>
       </div>
 
       {/* 7. CREATOR COMMUNITY END-CARD */}

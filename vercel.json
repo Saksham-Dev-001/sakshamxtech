@@ -33,6 +33,39 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/blogs/:slug",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(WhatsApp|whatsapp|TelegramBot|telegram|Twitterbot|twitter|facebookexternalhit|LinkedInBot|linkedin|Discordbot|discord|Slackbot|slack|Applebot|apple|SkypeUriPreview|skype|Pinterest|Googlebot).*"
+        }
+      ],
+      "destination": "/api/og?type=blog&slug=:slug"
+    },
+    {
+      "source": "/arcade/:slug",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(WhatsApp|whatsapp|TelegramBot|telegram|Twitterbot|twitter|facebookexternalhit|LinkedInBot|linkedin|Discordbot|discord|Slackbot|slack|Applebot|apple|SkypeUriPreview|skype|Pinterest|Googlebot).*"
+        }
+      ],
+      "destination": "/api/og?type=arcade&slug=:slug"
+    },
+    {
+      "source": "/unstop/:slug",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(WhatsApp|whatsapp|TelegramBot|telegram|Twitterbot|twitter|facebookexternalhit|LinkedInBot|linkedin|Discordbot|discord|Slackbot|slack|Applebot|apple|SkypeUriPreview|skype|Pinterest|Googlebot).*"
+        }
+      ],
+      "destination": "/api/og?type=unstop&slug=:slug"
+    },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

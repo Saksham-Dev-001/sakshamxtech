@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   Sparkles, 
   ArrowRight, 
@@ -643,51 +644,55 @@ export const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
               ref={carouselRef}
               className="flex items-stretch gap-4 overflow-x-auto no-scrollbar pb-2 scroll-smooth snap-x snap-mandatory scroll-px-4"
             >
-              {ytVideos.map((video, idx) => (
-                <div
-                  key={video.id || idx}
-                  onClick={() => {
-                    trackEvent('youtube', video.title, {
-                      videoId: video.videoId || video.id,
-                      videoTitle: video.title,
-                      pagePath: '/'
-                    });
-                    setActiveVideoModal({ id: video.videoId || video.id, title: video.title });
-                  }}
-                  className="snap-start shrink-0 min-w-[270px] sm:min-w-[300px] max-w-[320px] bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer group flex flex-col justify-between mobile-tap"
-                >
-                  <div>
-                    {/* Thumbnail */}
-                    <div className="relative aspect-video bg-slate-900 overflow-hidden">
-                      <img
-                        src={video.thumbnailUrl}
-                        alt={video.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                      <div className="absolute inset-0 bg-black/25 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                        <div className="w-10 h-10 rounded-full bg-red-600 text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                          <Play className="w-4 h-4 fill-white ml-0.5" />
+              {ytVideos.map((video, idx) => {
+                const rawId = video.videoId || video.id || '';
+                const cleanVidId = rawId.replace(/^yt:video:/, '').replace(/^yt-/, '').trim();
+                return (
+                  <div
+                    key={video.id || idx}
+                    onClick={() => {
+                      trackEvent('youtube', video.title, {
+                        videoId: cleanVidId,
+                        videoTitle: video.title,
+                        pagePath: '/'
+                      });
+                      setActiveVideoModal({ id: cleanVidId, title: video.title });
+                    }}
+                    className="snap-start shrink-0 min-w-[270px] sm:min-w-[300px] max-w-[320px] bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer group flex flex-col justify-between mobile-tap"
+                  >
+                    <div>
+                      {/* Thumbnail */}
+                      <div className="relative aspect-video bg-slate-900 overflow-hidden">
+                        <img
+                          src={video.thumbnailUrl}
+                          alt={video.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <div className="absolute inset-0 bg-black/25 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                          <div className="w-10 h-10 rounded-full bg-red-600 text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                            <Play className="w-4 h-4 fill-white ml-0.5" />
+                          </div>
                         </div>
+                        <span className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded bg-black/80 text-[10px] font-mono font-bold text-white">
+                          {video.duration || 'Video'}
+                        </span>
                       </div>
-                      <span className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded bg-black/80 text-[10px] font-mono font-bold text-white">
-                        {video.duration || 'Video'}
-                      </span>
+
+                      {/* Content */}
+                      <div className="p-4">
+                        <h4 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 leading-snug">
+                          {video.title}
+                        </h4>
+                      </div>
                     </div>
 
-                    {/* Content */}
-                    <div className="p-4">
-                      <h4 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 leading-snug">
-                        {video.title}
-                      </h4>
+                    <div className="p-4 pt-0 text-[11px] flex items-center justify-between border-t border-slate-100 dark:border-slate-800/80 pt-2.5">
+                      <span className="font-bold text-slate-700 dark:text-slate-300">{video.views || 'Latest'}</span>
+                      <span className="text-slate-400 dark:text-slate-500">{video.publishedAt}</span>
                     </div>
                   </div>
-
-                  <div className="p-4 pt-0 text-[11px] flex items-center justify-between border-t border-slate-100 dark:border-slate-800/80 pt-2.5">
-                    <span className="font-bold text-slate-700 dark:text-slate-300">{video.views || 'Latest'}</span>
-                    <span className="text-slate-400 dark:text-slate-500">{video.publishedAt}</span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
@@ -1022,25 +1027,36 @@ export const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
       {/* ========================================================================= */}
       {/* 7. YOUTUBE CINEMA MODAL (INTERACTIVE PLAYER)                              */}
       {/* ========================================================================= */}
-      {activeVideoModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="relative w-full max-w-3xl bg-slate-950 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl">
+      {activeVideoModal && typeof document !== 'undefined' && createPortal(
+        <div className="fixed inset-0 z-[99999] bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200">
+          <div className="relative w-full max-w-4xl bg-slate-950 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl flex flex-col">
             <div className="flex items-center justify-between p-4 bg-slate-900 border-b border-slate-800">
-              <div className="flex items-center gap-2 min-w-0 pr-3">
+              <div className="flex items-center gap-2.5 min-w-0 pr-3">
                 <Youtube className="w-5 h-5 text-red-500 fill-red-500 shrink-0" />
                 <h4 className="text-sm font-bold text-white truncate">{activeVideoModal.title}</h4>
               </div>
-              <button
-                onClick={() => setActiveVideoModal(null)}
-                className="p-1.5 text-slate-400 hover:text-white bg-slate-800 rounded-lg text-xs"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                <a
+                  href={`https://www.youtube.com/watch?v=${activeVideoModal.id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-3 py-1 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-colors flex items-center gap-1.5 shadow-sm"
+                >
+                  <span>Watch on YouTube</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+                <button
+                  onClick={() => setActiveVideoModal(null)}
+                  className="p-1.5 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl text-xs transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
-            <div className="relative aspect-video bg-black">
+            <div className="relative aspect-video bg-black w-full">
               <iframe
-                src={`https://www.youtube.com/embed/${activeVideoModal.id}?autoplay=1`}
+                src={`https://www.youtube-nocookie.com/embed/${activeVideoModal.id}?autoplay=1&rel=0&modestbranding=1`}
                 title={activeVideoModal.title}
                 className="w-full h-full border-0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -1048,20 +1064,22 @@ export const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
               />
             </div>
 
-            <div className="p-4 bg-slate-900/80 flex items-center justify-between text-xs text-slate-400">
-              <span>SakshamXTech Masterclass</span>
-              <a
-                href={siteSettings.socialLinks.youtube}
-                target="_blank"
-                rel="noreferrer"
-                className="text-red-400 font-bold hover:underline flex items-center gap-1"
-              >
-                <span>View Channel on YouTube</span>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
+            <div className="p-4 bg-slate-900/90 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
+              <span className="font-medium text-slate-300">SakshamXTech Masterclass Series</span>
+              <div className="flex items-center gap-3">
+                <a
+                  href={`https://www.youtube.com/watch?v=${activeVideoModal.id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-red-400 hover:text-red-300 font-bold flex items-center gap-1"
+                >
+                  <span>If video player doesn't load, click to watch directly on YouTube ↗</span>
+                </a>
+              </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
     </div>

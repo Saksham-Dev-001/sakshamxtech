@@ -153,6 +153,9 @@ export interface CLesson {
     explanation: string;
   }[];
   isPublished: boolean;
+  status?: 'published' | 'scheduled' | 'draft';
+  scheduledAt?: string;
+  updatedAt?: number;
 }
 
 export interface ResourceItem {

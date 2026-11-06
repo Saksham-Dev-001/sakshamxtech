@@ -33,10 +33,11 @@ export const CLessonPage: React.FC<CLessonPageProps> = ({ slug, navigate }) => {
   const [showSolutionIdx, setShowSolutionIdx] = useState<number | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
 
-  const lesson = cLessons.find((l) => l.slug === slug) || cLessons[0];
-  const currentIndex = cLessons.findIndex((l) => l.slug === lesson.slug);
-  const prevLesson = currentIndex > 0 ? cLessons[currentIndex - 1] : null;
-  const nextLesson = currentIndex < cLessons.length - 1 ? cLessons[currentIndex + 1] : null;
+  const sortedLessons = [...cLessons].sort((a, b) => (a.dayNumber || 0) - (b.dayNumber || 0));
+  const lesson = sortedLessons.find((l) => l.slug === slug) || sortedLessons[0];
+  const currentIndex = sortedLessons.findIndex((l) => l.slug === lesson.slug);
+  const prevLesson = currentIndex > 0 ? sortedLessons[currentIndex - 1] : null;
+  const nextLesson = currentIndex < sortedLessons.length - 1 ? sortedLessons[currentIndex + 1] : null;
 
   const handleCopyCode = () => {
     navigator.clipboard.writeText(lesson.codeSnippet);
@@ -84,7 +85,7 @@ export const CLessonPage: React.FC<CLessonPageProps> = ({ slug, navigate }) => {
           )}
 
           <span className="text-xs text-blue-600 dark:text-purple-400 font-mono font-bold">
-            Lesson {lesson.dayNumber} of {cLessons.length}
+            Lesson {lesson.dayNumber} of {sortedLessons.length}
           </span>
         </div>
       </div>

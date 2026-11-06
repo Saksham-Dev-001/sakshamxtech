@@ -12,7 +12,8 @@ import {
   CheckCircle2, 
   ChevronRight,
   Sparkles,
-  Edit3
+  Edit3,
+  Share2
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
@@ -28,6 +29,7 @@ export const ArcadeDetailPage: React.FC<ArcadeDetailPageProps> = ({ slug, naviga
   const { arcadeSolutions, updateArcadeSolution, isBookmarked, toggleBookmark, trackEvent } = useApp();
   const { isAdmin } = useAuth();
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [copiedLink, setCopiedLink] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
 
   const solution = arcadeSolutions.find((s) => s.slug === slug) || arcadeSolutions[0];
@@ -52,6 +54,39 @@ export const ArcadeDetailPage: React.FC<ArcadeDetailPageProps> = ({ slug, naviga
     setTimeout(() => setCopiedIndex(null), 2000);
   };
 
+  const handleShareLink = async () => {
+    const shareUrl = typeof window !== 'undefined' ? window.location.href : `https://sakshamxtech.vercel.app/arcade/${solution.slug}`;
+    const isMobile = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+    if (isMobile && navigator.share) {
+      try {
+        await navigator.share({
+          title: `${solution.labCode}: ${solution.title} | Google Cloud Arcade Solution`,
+          text: `🔥 Complete Lab Solution & Cloud Shell Commands for ${solution.labCode} on SakshamXTech:`,
+          url: shareUrl,
+        });
+        return;
+      } catch (err: any) {
+        if (err.name === 'AbortError') return;
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2500);
+    } catch {
+      const input = document.createElement('input');
+      input.value = shareUrl;
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand('copy');
+      document.body.removeChild(input);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2500);
+    }
+  };
+
   const bookmarked = isBookmarked(solution.id);
 
   return (
@@ -59,6 +94,7 @@ export const ArcadeDetailPage: React.FC<ArcadeDetailPageProps> = ({ slug, naviga
       <SEOHead
         title={`${solution.title} (${solution.labCode}) Solution | SakshamXTech`}
         description={`Step-by-step verified solution and commands for Google Cloud Arcade lab ${solution.labCode}: ${solution.title}.`}
+        image={solution.youtubeVideoId ? `https://i.ytimg.com/vi/${solution.youtubeVideoId}/hqdefault.jpg` : undefined}
       />
 
       {/* Back button & Breadcrumb */}
@@ -85,7 +121,7 @@ export const ArcadeDetailPage: React.FC<ArcadeDetailPageProps> = ({ slug, naviga
 
           <button
             onClick={() => toggleBookmark(solution.id)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border shadow-sm transition-all ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border shadow-sm transition-all cursor-pointer ${
               bookmarked
                 ? 'bg-amber-50 border-amber-300 text-amber-700 dark:bg-amber-950/60 dark:border-amber-500/50 dark:text-amber-300'
                 : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
@@ -93,6 +129,19 @@ export const ArcadeDetailPage: React.FC<ArcadeDetailPageProps> = ({ slug, naviga
           >
             <Bookmark className={`w-3.5 h-3.5 ${bookmarked ? 'fill-amber-400 text-amber-500' : ''}`} />
             <span>{bookmarked ? 'Saved to Bookmarks' : 'Save for Later'}</span>
+          </button>
+
+          <button
+            onClick={handleShareLink}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs shadow-2xs transition-all cursor-pointer ${
+              copiedLink
+                ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300 font-bold scale-105'
+                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-cyan-600 dark:hover:text-cyan-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+            }`}
+            title="Share Lab Solution (Mobile share sheet / PC 1-click copy)"
+          >
+            {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> : <Share2 className="w-3.5 h-3.5" />}
+            <span className="font-semibold">{copiedLink ? 'Link Copied!' : 'Share'}</span>
           </button>
         </div>
       </div>

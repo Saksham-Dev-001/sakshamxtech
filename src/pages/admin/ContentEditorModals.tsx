@@ -27,7 +27,9 @@ import {
   Flame,
   CheckCircle2,
   Share2,
-  FolderOpen
+  FolderOpen,
+  Plus,
+  Trash2
 } from 'lucide-react';
 import {
   BlogPost,
@@ -47,7 +49,9 @@ import { MarkdownArticleReader } from '../../components/shared/MarkdownArticleRe
 
 export const extractYouTubeVideoId = (input: string): string => {
   if (!input) return '';
-  const trimmed = input.trim();
+  let trimmed = input.trim();
+  if (trimmed.startsWith('yt:video:')) trimmed = trimmed.replace('yt:video:', '').trim();
+  if (trimmed.startsWith('yt-')) trimmed = trimmed.replace('yt-', '').trim();
   const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|&v=)([^#&?]*).*/;
   const match = trimmed.match(regExp);
   if (match && match[2] && match[2].length === 11) {
@@ -1591,7 +1595,21 @@ export const UnstopEditorModal: React.FC<UnstopModalProps> = ({
   const [title, setTitle] = useState('');
   const [difficulty, setDifficulty] = useState<UnstopProblem['difficulty']>('Medium');
   const [description, setDescription] = useState('');
-  const [solutionCode, setSolutionCode] = useState('');
+  const [inputFormat, setInputFormat] = useState('');
+  const [outputFormat, setOutputFormat] = useState('');
+  const [constraintsText, setConstraintsText] = useState('');
+  const [examples, setExamples] = useState<{ input: string; output: string; explanation?: string }[]>([
+    { input: '', output: '', explanation: '' }
+  ]);
+  const [youtubeVideoInput, setYoutubeVideoInput] = useState('');
+  const [activeCodeLang, setActiveCodeLang] = useState<'c' | 'cpp' | 'java' | 'python' | 'javascript'>('c');
+  const [codeSolutionsMap, setCodeSolutionsMap] = useState<Record<string, string>>({
+    c: '',
+    cpp: '',
+    java: '',
+    python: '',
+    javascript: '',
+  });
   const [explanation, setExplanation] = useState('');
   const [tags, setTags] = useState('Arrays, Algorithms');
 
@@ -1602,49 +1620,117 @@ export const UnstopEditorModal: React.FC<UnstopModalProps> = ({
       setTitle(initialData.title || '');
       setDifficulty(initialData.difficulty || 'Medium');
       setDescription(initialData.description || '');
-      setSolutionCode(
-        initialData.codeSolutions?.find((s) => s.language === 'c' || s.language === 'cpp')?.code ||
-        initialData.codeSolutions?.[0]?.code ||
-        ''
+      setInputFormat(initialData.inputFormat || '');
+      setOutputFormat(initialData.outputFormat || '');
+      setConstraintsText(
+        Array.isArray(initialData.constraints) ? initialData.constraints.join('\n') : ''
       );
+      setExamples(
+        Array.isArray(initialData.examples) && initialData.examples.length > 0
+          ? initialData.examples
+          : [{ input: '', output: '', explanation: '' }]
+      );
+      setYoutubeVideoInput(initialData.youtubeVideoId || '');
+
+      const solMap: Record<string, string> = { c: '', cpp: '', java: '', python: '', javascript: '' };
+      if (Array.isArray(initialData.codeSolutions)) {
+        initialData.codeSolutions.forEach((s) => {
+          if (s.language && s.code) {
+            solMap[s.language] = s.code;
+          }
+        });
+      }
+      setCodeSolutionsMap(solMap);
       setExplanation(initialData.solutionExplanation || '');
-      setTags(Array.isArray(initialData.tags) ? initialData.tags.join(', ') : 'POTD');
+      setTags(Array.isArray(initialData.tags) ? initialData.tags.join(', ') : 'POTD, Arrays');
     } else {
       setDayNumber(suggestedDayNumber || 1);
       setProblemDate(getTodayISODate());
       setTitle('');
       setDifficulty('Medium');
       setDescription('');
-      setSolutionCode('#include <stdio.h>\n#include <stdlib.h>\n\nint main() {\n    // Read input and compute result\n    return 0;\n}');
-      setExplanation('');
-      setTags('POTD, Data Structures');
+      setInputFormat('First line contains integer n (array size) and integer k.\nSecond line contains n space-separated integers.');
+      setOutputFormat('Single integer representing count of qualifying subarrays.');
+      setConstraintsText('1 <= nums.length <= 2 * 10^4\n-1000 <= nums[i] <= 1000\n-10^7 <= k <= 10^7');
+      setExamples([
+        { input: '3 2\n1 1 1', output: '2', explanation: 'Subarrays [nums[0]..nums[1]] and [nums[1]..nums[2]] both sum to 2.' }
+      ]);
+      setYoutubeVideoInput('');
+      setCodeSolutionsMap({
+        c: '#include <stdio.h>\n#include <stdlib.h>\n\nint main() {\n    // C Solution logic\n    return 0;\n}',
+        cpp: '#include <iostream>\n#include <vector>\n#include <unordered_map>\nusing namespace std;\n\nint main() {\n    // C++ Solution logic\n    return 0;\n}',
+        java: 'import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        // Java Solution logic\n    }\n}',
+        python: '# Python 3 Solution\ndef solve():\n    pass\n\nif __name__ == "__main__":\n    solve()',
+        javascript: '// JavaScript Solution\nconst fs = require("fs");\nfunction solve() {\n    // JS Solution logic\n}\nsolve();',
+      });
+      setExplanation('Use a Prefix Sum Hash Map running in O(N) time and O(N) space.');
+      setTags('POTD, Data Structures, Prefix Sum, Algorithms');
     }
   }, [initialData, isOpen, suggestedDayNumber]);
 
   if (!isOpen) return null;
 
+  const cleanYtId = extractYouTubeVideoId(youtubeVideoInput);
+
+  const handleAddExample = () => {
+    setExamples([...examples, { input: '', output: '', explanation: '' }]);
+  };
+
+  const handleRemoveExample = (idx: number) => {
+    if (examples.length <= 1) return;
+    setExamples(examples.filter((_, i) => i !== idx));
+  };
+
+  const handleUpdateExample = (idx: number, field: 'input' | 'output' | 'explanation', val: string) => {
+    const updated = [...examples];
+    updated[idx] = { ...updated[idx], [field]: val };
+    setExamples(updated);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return alert('Please enter problem title');
+
+    const parsedConstraints = constraintsText
+      .split('\n')
+      .map((c) => c.trim())
+      .filter(Boolean);
+
+    const validExamples = examples
+      .filter((ex) => ex.input.trim() || ex.output.trim())
+      .map((ex) => ({
+        input: ex.input.trim(),
+        output: ex.output.trim(),
+        ...(ex.explanation?.trim() ? { explanation: ex.explanation.trim() } : {}),
+      }));
+
+    const finalSolutions: { language: 'c' | 'cpp' | 'java' | 'python' | 'javascript'; code: string }[] = [];
+    (['c', 'cpp', 'java', 'python', 'javascript'] as const).forEach((lang) => {
+      const code = (codeSolutionsMap[lang] || '').trim();
+      if (code) {
+        finalSolutions.push({ language: lang, code });
+      }
+    });
+
+    if (finalSolutions.length === 0) {
+      finalSolutions.push({ language: 'c', code: '// Solution in preparation' });
+    }
 
     onSave({
       dayNumber: Number(dayNumber) || 1,
       title: title.trim(),
       slug: `day-${dayNumber}-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
       difficulty,
-      description: description.trim(),
+      description: description.trim() || 'Problem description in preparation.',
       date: problemDate || initialData?.date || getTodayISODate(),
-      inputFormat: initialData?.inputFormat || 'Array / Numbers input',
-      outputFormat: initialData?.outputFormat || 'Result output',
-      constraints: initialData?.constraints || ['1 <= n <= 10^5'],
-      examples: initialData?.examples || [{ input: '5', output: '5' }],
+      inputFormat: inputFormat.trim() || 'Array / Numbers input format',
+      outputFormat: outputFormat.trim() || 'Result output format',
+      constraints: parsedConstraints.length > 0 ? parsedConstraints : ['1 <= n <= 10^5'],
+      examples: validExamples.length > 0 ? validExamples : [{ input: '5', output: '5' }],
       tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
-      codeSolutions: [
-        { language: 'cpp', code: solutionCode },
-        { language: 'c', code: solutionCode },
-        { language: 'python', code: `# Python Solution\ndef solve():\n    pass` },
-      ],
-      solutionExplanation: explanation.trim(),
+      codeSolutions: finalSolutions,
+      solutionExplanation: explanation.trim() || 'Optimal algorithm intuition and complexity breakdown.',
+      ...(cleanYtId ? { youtubeVideoId: cleanYtId } : {}),
     });
     onClose();
   };
@@ -1652,12 +1738,20 @@ export const UnstopEditorModal: React.FC<UnstopModalProps> = ({
   const siteUrl = getSiteOrigin();
 
   const potdSnippet = `🔥 Unstop POTD Day ${dayNumber} Solution - ${title}
-📌 View Complete Code (C, C++, Python) & Logic:
+📌 View Complete Code (C, C++, Java, Python, JS) & Logic:
 ${siteUrl}/unstop/day-${dayNumber}
 
 💡 Difficulty: ${difficulty}
 🔔 Subscribe for Daily Unstop POTD & Contest Solutions:
 https://youtube.com/@sakshamxtech?sub_confirmation=1`;
+
+  const languagesList: { key: 'c' | 'cpp' | 'java' | 'python' | 'javascript'; label: string }[] = [
+    { key: 'c', label: 'C' },
+    { key: 'cpp', label: 'C++' },
+    { key: 'java', label: 'Java' },
+    { key: 'python', label: 'Python 3' },
+    { key: 'javascript', label: 'JavaScript' },
+  ];
 
   return createPortal(
     <div className="fixed inset-0 z-[99999] bg-slate-50 dark:bg-slate-950 overflow-y-auto overflow-x-hidden w-full max-w-full min-h-screen text-slate-900 dark:text-slate-100 flex flex-col font-sans">
@@ -1674,13 +1768,23 @@ https://youtube.com/@sakshamxtech?sub_confirmation=1`;
       <main className="max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8 flex-1 overflow-x-hidden">
         <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
           
-          <div className="lg:col-span-8 space-y-4 sm:space-y-6">
+          {/* Main Editing Column */}
+          <div className="lg:col-span-8 space-y-6">
+            
+            {/* 1. BASIC DETAILS CARD */}
             <div className="p-4 sm:p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl shadow-xs space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
+                <Flame className="w-4 h-4 text-amber-500" />
+                <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                  1. Problem Overview
+                </h3>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
                 <div className="sm:col-span-3">
                   <label className="text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-1.5 flex items-center justify-between">
                     <span>Day Number <span className="text-red-500">*</span></span>
-                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold lowercase">auto (prev+1)</span>
+                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold lowercase">auto</span>
                   </label>
                   <input
                     type="number"
@@ -1693,9 +1797,8 @@ https://youtube.com/@sakshamxtech?sub_confirmation=1`;
                 </div>
 
                 <div className="sm:col-span-3">
-                  <label className="text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-1.5 flex items-center justify-between">
-                    <span>Date <span className="text-red-500">*</span></span>
-                    <span className="text-[10px] text-cyan-600 dark:text-cyan-400 font-bold lowercase">local date</span>
+                  <label className="text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-1.5">
+                    Date <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="date"
@@ -1715,7 +1818,7 @@ https://youtube.com/@sakshamxtech?sub_confirmation=1`;
                     required
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    placeholder="e.g. Subarray with Given Sum"
+                    placeholder="e.g. Subarray Sum Equals K with Negative Numbers"
                     className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 text-base text-slate-900 dark:text-white font-bold"
                   />
                 </div>
@@ -1723,53 +1826,235 @@ https://youtube.com/@sakshamxtech?sub_confirmation=1`;
 
               <div>
                 <label className="text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-1.5">
-                  Problem Statement
+                  Problem Statement / Description
                 </label>
                 <textarea
                   rows={4}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Describe the problem, input format, and constraints..."
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 text-xs sm:text-sm text-slate-900 dark:text-white"
+                  placeholder="Given an array of integers nums and an integer k, return the total number of continuous subarrays..."
+                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 text-xs sm:text-sm text-slate-900 dark:text-white leading-relaxed"
                 />
               </div>
             </div>
 
-            {/* Code Solution Editor */}
-            <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xs space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Code2 className="w-4 h-4 text-amber-500" />
-                  <label className="text-xs font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-200">
-                    C / C++ Solution Code
-                  </label>
-                </div>
-                <span className="text-xs font-mono text-slate-400">Syntax checked</span>
+            {/* 2. INPUT FORMAT, OUTPUT FORMAT & CONSTRAINTS */}
+            <div className="p-4 sm:p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl shadow-xs space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
+                <Terminal className="w-4 h-4 text-blue-500" />
+                <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                  2. I/O Specifications &amp; Constraints
+                </h3>
               </div>
-              <textarea
-                rows={12}
-                value={solutionCode}
-                onChange={(e) => setSolutionCode(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-2xl p-4 font-mono text-xs sm:text-sm text-amber-400 leading-relaxed focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-hidden"
-              />
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-1.5">
+                    Input Format
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={inputFormat}
+                    onChange={(e) => setInputFormat(e.target.value)}
+                    placeholder="First line contains integer n and integer k...&#10;Second line contains n space-separated integers."
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-3 font-mono text-xs text-slate-900 dark:text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-1.5">
+                    Output Format
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={outputFormat}
+                    onChange={(e) => setOutputFormat(e.target.value)}
+                    placeholder="Single integer representing count of qualifying subarrays."
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-3 font-mono text-xs text-slate-900 dark:text-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-1.5 flex items-center justify-between">
+                  <span>Constraints</span>
+                  <span className="text-[10px] text-slate-400 lowercase font-medium">1 constraint per line</span>
+                </label>
+                <textarea
+                  rows={4}
+                  value={constraintsText}
+                  onChange={(e) => setConstraintsText(e.target.value)}
+                  placeholder="1 <= nums.length <= 2 * 10^4&#10;-1000 <= nums[i] <= 1000&#10;-10^7 <= k <= 10^7"
+                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-3 font-mono text-xs text-slate-900 dark:text-white"
+                />
+              </div>
             </div>
 
-            {/* Explanation / Approach */}
-            <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xs space-y-2">
-              <label className="text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
-                Approach & Complexity Explanation
-              </label>
+            {/* 3. EXAMPLE TEST CASES */}
+            <div className="p-4 sm:p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl shadow-xs space-y-4">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                  <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                    3. Example Test Cases ({examples.length})
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleAddExample}
+                  className="px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add Example Case</span>
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {examples.map((ex, idx) => (
+                  <div
+                    key={idx}
+                    className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 space-y-3 relative group"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                        <span className="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-[10px] font-bold">
+                          {idx + 1}
+                        </span>
+                        <span>Case #{idx + 1}</span>
+                      </span>
+
+                      {examples.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveExample(idx)}
+                          className="p-1 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors cursor-pointer"
+                          title="Delete Example"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[10px] font-bold uppercase text-slate-500 block mb-1">
+                          Input
+                        </label>
+                        <textarea
+                          rows={2}
+                          value={ex.input}
+                          onChange={(e) => handleUpdateExample(idx, 'input', e.target.value)}
+                          placeholder="e.g. 3 2&#10;1 1 1"
+                          className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 font-mono text-xs text-blue-600 dark:text-cyan-300"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold uppercase text-slate-500 block mb-1">
+                          Output
+                        </label>
+                        <textarea
+                          rows={2}
+                          value={ex.output}
+                          onChange={(e) => handleUpdateExample(idx, 'output', e.target.value)}
+                          placeholder="e.g. 2"
+                          className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 font-mono text-xs text-emerald-600 dark:text-emerald-300"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-bold uppercase text-slate-500 block mb-1">
+                        Explanation (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={ex.explanation || ''}
+                        onChange={(e) => handleUpdateExample(idx, 'explanation', e.target.value)}
+                        placeholder="e.g. Subarrays [nums[0]..nums[1]] and [nums[1]..nums[2]] both sum to 2."
+                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-700 dark:text-slate-300"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 4. MULTI-LANGUAGE CODE SOLUTION TABS */}
+            <div className="p-4 sm:p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl shadow-xs space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
+                <div className="flex items-center gap-2">
+                  <Code2 className="w-4 h-4 text-emerald-500" />
+                  <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                    4. Multi-Language Code Solutions
+                  </h3>
+                </div>
+                <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                  Fill code for as many languages as you want
+                </span>
+              </div>
+
+              {/* Language Switcher Tabs */}
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
+                {languagesList.map((lang) => {
+                  const hasCode = Boolean((codeSolutionsMap[lang.key] || '').trim());
+                  return (
+                    <button
+                      key={lang.key}
+                      type="button"
+                      onClick={() => setActiveCodeLang(lang.key)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
+                        activeCodeLang === lang.key
+                          ? 'bg-emerald-500 text-slate-950 shadow-sm'
+                          : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                    >
+                      <span>{lang.label}</span>
+                      {hasCode && (
+                        <span className={`w-2 h-2 rounded-full ${activeCodeLang === lang.key ? 'bg-slate-950' : 'bg-emerald-500'}`} />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Code Textarea for the active language */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs text-slate-400 font-mono">
+                  <span>Editing: <strong className="text-emerald-500 uppercase">{activeCodeLang}</strong> solution</span>
+                  <span>{codeSolutionsMap[activeCodeLang]?.length || 0} characters</span>
+                </div>
+                <textarea
+                  rows={14}
+                  value={codeSolutionsMap[activeCodeLang] || ''}
+                  onChange={(e) => setCodeSolutionsMap({ ...codeSolutionsMap, [activeCodeLang]: e.target.value })}
+                  placeholder={`Paste full verified ${activeCodeLang.toUpperCase()} solution code here...`}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-2xl p-4 font-mono text-xs sm:text-sm text-emerald-300 leading-relaxed focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-hidden"
+                />
+              </div>
+            </div>
+
+            {/* 5. APPROACH & ALGORITHM INTUITION */}
+            <div className="p-4 sm:p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl shadow-xs space-y-3">
+              <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
+                <Sparkles className="w-4 h-4 text-purple-500" />
+                <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                  5. Optimal Algorithm Intuition &amp; Complexity
+                </h3>
+              </div>
               <textarea
-                rows={3}
+                rows={4}
                 value={explanation}
                 onChange={(e) => setExplanation(e.target.value)}
-                placeholder="Explain the intuition, time complexity O(N), and space complexity..."
-                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 text-xs sm:text-sm text-slate-900 dark:text-white"
+                placeholder="Explain the intuition, prefix sum hash map approach, time complexity O(N), and space complexity..."
+                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 text-xs sm:text-sm text-slate-900 dark:text-white leading-relaxed"
               />
             </div>
           </div>
 
+          {/* Right Sidebar Column */}
           <div className="lg:col-span-4 space-y-6">
+            
+            {/* Publish Actions Card */}
             <div className="p-5 bg-gradient-to-br from-blue-500/10 via-indigo-500/10 to-purple-500/10 border border-blue-500/20 rounded-3xl shadow-sm space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-black uppercase tracking-wider text-blue-600 dark:text-blue-400">
@@ -1783,7 +2068,7 @@ https://youtube.com/@sakshamxtech?sub_confirmation=1`;
                 className="w-full py-3 rounded-2xl text-xs font-black text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-800 shadow-md shadow-blue-500/25 flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer"
               >
                 <Save className="w-4 h-4" />
-                <span>{initialData ? 'Update & Publish' : 'Save & Publish'}</span>
+                <span>{initialData ? 'Update POTD Solution' : 'Save & Publish Solution'}</span>
               </button>
               <button
                 type="button"
@@ -1793,6 +2078,8 @@ https://youtube.com/@sakshamxtech?sub_confirmation=1`;
                 Discard / Cancel
               </button>
             </div>
+
+            {/* Problem Settings Card */}
             <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xs space-y-4">
               <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
                 Problem Settings
@@ -1805,7 +2092,7 @@ https://youtube.com/@sakshamxtech?sub_confirmation=1`;
                 <select
                   value={difficulty}
                   onChange={(e) => setDifficulty(e.target.value as any)}
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs text-slate-900 dark:text-white"
+                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs text-slate-900 dark:text-white font-bold"
                 >
                   <option value="Easy">Easy</option>
                   <option value="Medium">Medium</option>
@@ -1821,12 +2108,52 @@ https://youtube.com/@sakshamxtech?sub_confirmation=1`;
                   type="text"
                   value={tags}
                   onChange={(e) => setTags(e.target.value)}
-                  placeholder="Arrays, Binary Search, POTD"
+                  placeholder="Arrays, Prefix Sum, Hash Map, POTD"
                   className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white"
                 />
               </div>
             </div>
 
+            {/* YouTube Video Link Hub */}
+            <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xs space-y-3">
+              <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
+                <Youtube className="w-4 h-4 fill-red-500 text-red-500" />
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
+                  YouTube Solution Video
+                </h4>
+              </div>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                Paste your YouTube video link or ID (e.g. <code className="font-mono text-[10px]">https://youtu.be/...</code>). An embedded player will appear on this POTD page.
+              </p>
+              <input
+                type="text"
+                value={youtubeVideoInput}
+                onChange={(e) => setYoutubeVideoInput(e.target.value)}
+                placeholder="e.g. 9X0JToHJ2to or https://youtu.be/..."
+                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white font-mono"
+              />
+
+              {cleanYtId && (
+                <div className="mt-2 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 relative aspect-video bg-slate-950">
+                  <img
+                    src={`https://i.ytimg.com/vi/${cleanYtId}/hqdefault.jpg`}
+                    alt="YouTube Video Preview"
+                    className="w-full h-full object-cover"
+                  />
+                  <a
+                    href={`https://www.youtube.com/watch?v=${cleanYtId}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="absolute inset-0 bg-black/40 hover:bg-black/20 flex items-center justify-center transition-colors text-white font-bold text-xs gap-1"
+                  >
+                    <Play className="w-4 h-4 fill-white" />
+                    <span>Open Video ↗</span>
+                  </a>
+                </div>
+              )}
+            </div>
+
+            {/* YouTube Description Snippet */}
             <YouTubeDescriptionSnippetBox
               title="YouTube Description Snippet"
               snippetText={potdSnippet}
@@ -2406,9 +2733,23 @@ export const CLessonEditorModal: React.FC<CLessonModalProps> = ({
   const [title, setTitle] = useState('');
   const [summary, setSummary] = useState('');
   const [youtubeVideoId, setYoutubeVideoId] = useState('');
-  const [durationMinutes, setDurationMinutes] = useState(25);
+  const [durationMinutes, setDurationMinutes] = useState(30);
   const [content, setContent] = useState('');
   const [codeSnippet, setCodeSnippet] = useState('');
+  const [expectedOutput, setExpectedOutput] = useState('');
+  const [lessonStatus, setLessonStatus] = useState<'published' | 'scheduled' | 'draft'>('published');
+  const [scheduledAt, setScheduledAt] = useState('');
+  const [practiceQuestions, setPracticeQuestions] = useState<{
+    question: string;
+    hint?: string;
+    solutionCode: string;
+  }[]>([]);
+  const [quizList, setQuizList] = useState<{
+    question: string;
+    options: string[];
+    correctIndex: number;
+    explanation: string;
+  }[]>([]);
 
   useEffect(() => {
     if (initialData) {
@@ -2416,17 +2757,48 @@ export const CLessonEditorModal: React.FC<CLessonModalProps> = ({
       setTitle(initialData.title || '');
       setSummary(initialData.summary || '');
       setYoutubeVideoId(initialData.youtubeVideoId || '');
-      setDurationMinutes(initialData.durationMinutes || 25);
+      setDurationMinutes(initialData.durationMinutes || 30);
       setContent(initialData.content || '');
       setCodeSnippet(initialData.codeSnippet || '');
+      setExpectedOutput(initialData.expectedOutput || '');
+      setLessonStatus(initialData.status || (initialData.isPublished ? 'published' : 'draft'));
+      setScheduledAt(initialData.scheduledAt || '');
+      setPracticeQuestions(
+        Array.isArray(initialData.practiceQuestions) && initialData.practiceQuestions.length > 0
+          ? initialData.practiceQuestions
+          : []
+      );
+      setQuizList(
+        Array.isArray(initialData.quiz) && initialData.quiz.length > 0
+          ? initialData.quiz
+          : []
+      );
     } else {
       setDayNumber(4);
       setTitle('');
       setSummary('');
       setYoutubeVideoId('');
-      setDurationMinutes(25);
-      setContent('# Lesson Notes\n\nExplain key concepts, memory representation, and common pitfalls.');
+      setDurationMinutes(30);
+      setContent('# Lesson Notes & Core Concepts\n\nExplain key concepts, memory representation, and common pitfalls.');
       setCodeSnippet('#include <stdio.h>\n\nint main() {\n    printf("Hello C Academy!\\n");\n    return 0;\n}');
+      setExpectedOutput('Hello C Academy!');
+      setLessonStatus('published');
+      setScheduledAt('');
+      setPracticeQuestions([
+        {
+          question: 'Write a C program demonstrating the concepts learned today.',
+          hint: 'Remember to check memory boundaries and use proper format specifiers.',
+          solutionCode: '#include <stdio.h>\n\nint main() {\n    // Solution code\n    return 0;\n}',
+        }
+      ]);
+      setQuizList([
+        {
+          question: 'What is the return type of the main() function in standard C?',
+          options: ['void', 'int', 'float', 'char'],
+          correctIndex: 1,
+          explanation: 'Standard C (C99/C11/C17) specifies that main() must return an integer status code (0 for success).',
+        }
+      ]);
     }
   }, [initialData, isOpen]);
 
@@ -2434,23 +2806,75 @@ export const CLessonEditorModal: React.FC<CLessonModalProps> = ({
 
   const cleanVideoId = extractYouTubeVideoId(youtubeVideoId);
 
+  const handleAddPracticeQuestion = () => {
+    setPracticeQuestions([
+      ...practiceQuestions,
+      { question: '', hint: '', solutionCode: '#include <stdio.h>\n\nint main() {\n    return 0;\n}' }
+    ]);
+  };
+
+  const handleRemovePracticeQuestion = (idx: number) => {
+    setPracticeQuestions(practiceQuestions.filter((_, i) => i !== idx));
+  };
+
+  const handleUpdatePracticeQuestion = (idx: number, field: string, val: string) => {
+    const updated = [...practiceQuestions];
+    updated[idx] = { ...updated[idx], [field]: val };
+    setPracticeQuestions(updated);
+  };
+
+  const handleAddQuiz = () => {
+    setQuizList([
+      ...quizList,
+      {
+        question: '',
+        options: ['', '', '', ''],
+        correctIndex: 0,
+        explanation: '',
+      }
+    ]);
+  };
+
+  const handleRemoveQuiz = (idx: number) => {
+    setQuizList(quizList.filter((_, i) => i !== idx));
+  };
+
+  const handleUpdateQuiz = (idx: number, field: string, val: any) => {
+    const updated = [...quizList];
+    updated[idx] = { ...updated[idx], [field]: val };
+    setQuizList(updated);
+  };
+
+  const handleUpdateQuizOption = (qIdx: number, optIdx: number, val: string) => {
+    const updated = [...quizList];
+    const newOptions = [...updated[qIdx].options];
+    newOptions[optIdx] = val;
+    updated[qIdx] = { ...updated[qIdx], options: newOptions };
+    setQuizList(updated);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return alert('Please enter lesson title');
+
+    const validExercises = practiceQuestions.filter((q) => q.question.trim());
+    const validQuizzes = quizList.filter((q) => q.question.trim() && q.options.some((o) => o.trim()));
 
     onSave({
       dayNumber: Number(dayNumber) || 1,
       title: title.trim(),
       slug: `day-${dayNumber}-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
-      summary: summary.trim(),
-      durationMinutes: Number(durationMinutes) || 20,
-      youtubeVideoId: cleanVideoId || undefined,
-      content: content.trim(),
-      codeSnippet: codeSnippet.trim(),
-      expectedOutput: 'Output generated',
-      isPublished: true,
-      practiceQuestions: [],
-      quiz: [],
+      summary: summary.trim() || 'Comprehensive C systems programming lecture notes.',
+      durationMinutes: Number(durationMinutes) || 25,
+      youtubeVideoId: cleanVideoId || '',
+      content: content.trim() || '# Lesson Notes\n\nNotes in preparation.',
+      codeSnippet: codeSnippet.trim() || '#include <stdio.h>\n\nint main() {\n    return 0;\n}',
+      expectedOutput: expectedOutput.trim() || 'Program executed successfully.',
+      isPublished: lessonStatus !== 'draft',
+      status: lessonStatus,
+      ...(lessonStatus === 'scheduled' && scheduledAt ? { scheduledAt } : {}),
+      practiceQuestions: validExercises,
+      quiz: validQuizzes,
     });
     onClose();
   };
@@ -2480,12 +2904,23 @@ https://youtube.com/@sakshamxtech?sub_confirmation=1`;
       <main className="max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8 flex-1 overflow-x-hidden">
         <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
           
-          <div className="lg:col-span-8 space-y-4 sm:space-y-6">
+          {/* Main Left Column (8 cols) */}
+          <div className="lg:col-span-8 space-y-6">
+            
+            {/* 1. LECTURE OVERVIEW */}
             <div className="p-4 sm:p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl shadow-xs space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                <div>
-                  <label className="text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-1.5">
-                    Day Number <span className="text-red-500">*</span>
+              <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
+                <BookOpen className="w-4 h-4 text-sky-500" />
+                <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                  1. Lecture Overview
+                </h3>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
+                <div className="sm:col-span-3">
+                  <label className="text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-1.5 flex items-center justify-between">
+                    <span>Day Number <span className="text-red-500">*</span></span>
+                    <span className="text-[10px] text-sky-600 dark:text-sky-400 font-bold lowercase">order</span>
                   </label>
                   <input
                     type="number"
@@ -2496,7 +2931,8 @@ https://youtube.com/@sakshamxtech?sub_confirmation=1`;
                     className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 text-base text-slate-900 dark:text-white font-mono font-black"
                   />
                 </div>
-                <div className="sm:col-span-3">
+
+                <div className="sm:col-span-6">
                   <label className="text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-1.5">
                     Lecture Title <span className="text-red-500">*</span>
                   </label>
@@ -2505,68 +2941,283 @@ https://youtube.com/@sakshamxtech?sub_confirmation=1`;
                     required
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    placeholder="e.g. Pointers, Stack vs Heap & Memory Layout"
+                    placeholder="e.g. Pointers, Memory Addresses & Dereferencing (*)"
                     className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 text-base text-slate-900 dark:text-white font-bold"
+                  />
+                </div>
+
+                <div className="sm:col-span-3">
+                  <label className="text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-1.5">
+                    Duration (Mins)
+                  </label>
+                  <input
+                    type="number"
+                    min="5"
+                    value={durationMinutes}
+                    onChange={(e) => setDurationMinutes(Number(e.target.value))}
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 text-sm text-slate-900 dark:text-white font-mono font-bold"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
-                  Lecture Summary
+                <label className="text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-1.5">
+                  Summary / Excerpt
                 </label>
                 <textarea
                   rows={2}
                   value={summary}
                   onChange={(e) => setSummary(e.target.value)}
-                  placeholder="Key concepts covered in this video lecture..."
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 text-xs sm:text-sm text-slate-900 dark:text-white"
+                  placeholder="Brief 1-2 sentence preview shown on the curriculum roadmap..."
+                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 text-xs sm:text-sm text-slate-900 dark:text-white leading-relaxed"
                 />
               </div>
             </div>
 
-            {/* Code Snippet */}
-            <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xs space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Code2 className="w-4 h-4 text-sky-500" />
-                  <label className="text-xs font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-200">
-                    Interactive C Code Example
-                  </label>
-                </div>
-                <span className="text-xs font-mono text-slate-400">Loads into In-Browser Compiler</span>
+            {/* 2. LECTURE NOTES & EXPLANATIONS */}
+            <div className="p-4 sm:p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl shadow-xs space-y-3">
+              <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
+                <FileText className="w-4 h-4 text-purple-500" />
+                <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                  2. Lecture Knowledge Material (Markdown)
+                </h3>
               </div>
               <textarea
-                rows={10}
-                value={codeSnippet}
-                onChange={(e) => setCodeSnippet(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-2xl p-4 font-mono text-xs sm:text-sm text-sky-400 leading-relaxed focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-hidden"
-              />
-            </div>
-
-            {/* YouTube Tutorial */}
-            <YouTubeStudioBox
-              videoId={youtubeVideoId}
-              onChange={setYoutubeVideoId}
-              label="YouTube Video Lecture"
-              helperText="Embed the full video lesson so students can follow along directly while executing C code."
-            />
-
-            {/* Lecture Notes */}
-            <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xs space-y-3">
-              <label className="text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
-                Lecture Notes & Explanations (Markdown)
-              </label>
-              <textarea
-                rows={8}
+                rows={12}
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 font-mono text-xs sm:text-sm text-slate-900 dark:text-white"
+                placeholder="# Day X: Concept Title&#10;&#10;Detailed explanation of memory layout, compiler instructions, pointers..."
+                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 font-mono text-xs sm:text-sm text-slate-900 dark:text-white leading-relaxed"
               />
             </div>
+
+            {/* 3. INTERACTIVE CODE EXAMPLE & OUTPUT */}
+            <div className="p-4 sm:p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl shadow-xs space-y-4">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+                <div className="flex items-center gap-2">
+                  <Terminal className="w-4 h-4 text-cyan-500" />
+                  <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                    3. Interactive C Code Example (Runs in Playground)
+                  </h3>
+                </div>
+                <span className="text-[11px] font-mono text-slate-400">main.c</span>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold uppercase text-slate-500 block mb-1">
+                  C Code Snippet
+                </label>
+                <textarea
+                  rows={10}
+                  value={codeSnippet}
+                  onChange={(e) => setCodeSnippet(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-2xl p-4 font-mono text-xs sm:text-sm text-cyan-300 leading-relaxed focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 outline-hidden"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold uppercase text-slate-500 block mb-1">
+                  Expected Standard Output (Stdout)
+                </label>
+                <textarea
+                  rows={3}
+                  value={expectedOutput}
+                  onChange={(e) => setExpectedOutput(e.target.value)}
+                  placeholder="Exact console output when this program runs..."
+                  className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-3 font-mono text-xs text-emerald-400"
+                />
+              </div>
+            </div>
+
+            {/* 4. PRACTICE EXERCISES */}
+            <div className="p-4 sm:p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl shadow-xs space-y-4">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+                <div className="flex items-center gap-2">
+                  <Code2 className="w-4 h-4 text-emerald-500" />
+                  <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                    4. Practice Exercises ({practiceQuestions.length})
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleAddPracticeQuestion}
+                  className="px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add Exercise</span>
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {practiceQuestions.map((q, idx) => (
+                  <div
+                    key={idx}
+                    className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 space-y-3"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                        <span className="w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 flex items-center justify-center text-[10px] font-black">
+                          {idx + 1}
+                        </span>
+                        <span>Exercise #{idx + 1}</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemovePracticeQuestion(idx)}
+                        className="p-1 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors cursor-pointer"
+                        title="Delete Exercise"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-bold uppercase text-slate-500 block mb-1">
+                        Question / Problem Statement
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={q.question}
+                        onChange={(e) => handleUpdatePracticeQuestion(idx, 'question', e.target.value)}
+                        placeholder="e.g. Write a program to swap two integers using pointers without a third variable."
+                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-bold uppercase text-slate-500 block mb-1">
+                        Hint (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={q.hint || ''}
+                        onChange={(e) => handleUpdatePracticeQuestion(idx, 'hint', e.target.value)}
+                        placeholder="e.g. Use dereferencing *a = *a + *b..."
+                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-amber-700 dark:text-amber-400"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-bold uppercase text-slate-500 block mb-1">
+                        Solution Code (Revealed on click)
+                      </label>
+                      <textarea
+                        rows={4}
+                        value={q.solutionCode}
+                        onChange={(e) => handleUpdatePracticeQuestion(idx, 'solutionCode', e.target.value)}
+                        placeholder="#include <stdio.h>..."
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 font-mono text-xs text-emerald-300"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 5. UNDERSTANDING QUIZ */}
+            <div className="p-4 sm:p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl shadow-xs space-y-4">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+                <div className="flex items-center gap-2">
+                  <HelpCircle className="w-4 h-4 text-indigo-500" />
+                  <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                    5. Understanding Quiz Questions ({quizList.length})
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleAddQuiz}
+                  className="px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add Quiz Question</span>
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {quizList.map((quiz, qIdx) => (
+                  <div
+                    key={qIdx}
+                    className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 space-y-3"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                        <span className="w-5 h-5 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 flex items-center justify-center text-[10px] font-black">
+                          {qIdx + 1}
+                        </span>
+                        <span>Quiz #{qIdx + 1}</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveQuiz(qIdx)}
+                        className="p-1 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors cursor-pointer"
+                        title="Delete Quiz Question"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-bold uppercase text-slate-500 block mb-1">
+                        Question Text
+                      </label>
+                      <input
+                        type="text"
+                        value={quiz.question}
+                        onChange={(e) => handleUpdateQuiz(qIdx, 'question', e.target.value)}
+                        placeholder="e.g. What is the output of printf('%d', sizeof(char));?"
+                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      {quiz.options.map((opt, optIdx) => (
+                        <div key={optIdx} className="flex items-center gap-2">
+                          <input
+                            type="radio"
+                            name={`quiz-correct-${qIdx}`}
+                            checked={quiz.correctIndex === optIdx}
+                            onChange={() => handleUpdateQuiz(qIdx, 'correctIndex', optIdx)}
+                            className="text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                            title="Mark as correct answer"
+                          />
+                          <input
+                            type="text"
+                            value={opt}
+                            onChange={(e) => handleUpdateQuizOption(qIdx, optIdx, e.target.value)}
+                            placeholder={`Option ${['A', 'B', 'C', 'D'][optIdx] || optIdx + 1}`}
+                            className={`flex-1 bg-white dark:bg-slate-900 border rounded-xl px-3 py-1.5 text-xs text-slate-900 dark:text-white ${
+                              quiz.correctIndex === optIdx
+                                ? 'border-emerald-500 font-bold bg-emerald-50/20'
+                                : 'border-slate-200 dark:border-slate-700'
+                            }`}
+                          />
+                        </div>
+                      ))}
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-bold uppercase text-slate-500 block mb-1">
+                        Explanation (Shown after answering)
+                      </label>
+                      <input
+                        type="text"
+                        value={quiz.explanation}
+                        onChange={(e) => handleUpdateQuiz(qIdx, 'explanation', e.target.value)}
+                        placeholder="e.g. By standard definition in C, sizeof(char) is always guaranteed to be 1."
+                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-700 dark:text-slate-300"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
           </div>
 
+          {/* Right Sidebar Column (4 cols) */}
           <div className="lg:col-span-4 space-y-6">
+            
+            {/* Publish Actions */}
             <div className="p-5 bg-gradient-to-br from-blue-500/10 via-indigo-500/10 to-purple-500/10 border border-blue-500/20 rounded-3xl shadow-sm space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-black uppercase tracking-wider text-blue-600 dark:text-blue-400">
@@ -2580,7 +3231,7 @@ https://youtube.com/@sakshamxtech?sub_confirmation=1`;
                 className="w-full py-3 rounded-2xl text-xs font-black text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-800 shadow-md shadow-blue-500/25 flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer"
               >
                 <Save className="w-4 h-4" />
-                <span>{initialData ? 'Update & Publish' : 'Save & Publish'}</span>
+                <span>{initialData ? 'Update Lecture' : 'Publish Lecture'}</span>
               </button>
               <button
                 type="button"
@@ -2590,24 +3241,129 @@ https://youtube.com/@sakshamxtech?sub_confirmation=1`;
                 Discard / Cancel
               </button>
             </div>
+
+            {/* Publishing Schedule Card */}
             <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xs space-y-4">
-              <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
-                Lecture Settings
-              </h4>
-              <div>
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
-                  Video Duration (Minutes)
-                </label>
-                <input
-                  type="number"
-                  min="5"
-                  value={durationMinutes}
-                  onChange={(e) => setDurationMinutes(Number(e.target.value))}
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white font-mono"
-                />
+              <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
+                <Calendar className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-800 dark:text-slate-200">
+                  Publishing Schedule
+                </h4>
               </div>
+
+              {/* 3-Mode Selector */}
+              <div className="grid grid-cols-3 gap-1.5 p-1 bg-slate-100 dark:bg-slate-800/90 rounded-2xl">
+                <button
+                  type="button"
+                  onClick={() => setLessonStatus('published')}
+                  className={`py-2 px-1 text-center rounded-xl text-[11px] font-extrabold transition-all cursor-pointer ${
+                    lessonStatus === 'published'
+                      ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  🚀 Live Now
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLessonStatus('scheduled')}
+                  className={`py-2 px-1 text-center rounded-xl text-[11px] font-extrabold transition-all cursor-pointer ${
+                    lessonStatus === 'scheduled'
+                      ? 'bg-purple-600 text-white shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  📅 Schedule
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLessonStatus('draft')}
+                  className={`py-2 px-1 text-center rounded-xl text-[11px] font-extrabold transition-all cursor-pointer ${
+                    lessonStatus === 'draft'
+                      ? 'bg-white dark:bg-slate-700 text-amber-600 dark:text-amber-400 shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  📝 Draft
+                </button>
+              </div>
+
+              {/* Dynamic Panel based on mode */}
+              {lessonStatus === 'scheduled' ? (
+                <div className="p-4 rounded-2xl bg-purple-500/5 border border-purple-500/20 space-y-3 text-xs">
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
+                      Target Release Date &amp; Time
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={scheduledAt}
+                      min={getDelhiCurrentDateTimeLocal()}
+                      onChange={(e) => setScheduledAt(e.target.value)}
+                      className="w-full bg-white dark:bg-slate-800 border border-purple-300 dark:border-purple-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-purple-500 outline-hidden"
+                    />
+                  </div>
+                  <p className="text-[11px] text-purple-700 dark:text-purple-300">
+                    Automated Release: This lecture will go live at the scheduled time.
+                  </p>
+                </div>
+              ) : lessonStatus === 'draft' ? (
+                <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 text-xs text-amber-700 dark:text-amber-300">
+                  <p className="font-bold">Private Draft Mode</p>
+                  <p className="text-[11px] mt-1 text-slate-600 dark:text-slate-400">
+                    This lecture is saved privately and will not be visible to learners until published.
+                  </p>
+                </div>
+              ) : (
+                <div className="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/20 text-xs text-emerald-700 dark:text-emerald-300">
+                  <p className="font-bold">Immediate Public Release</p>
+                  <p className="text-[11px] mt-1 text-slate-600 dark:text-slate-400">
+                    This lecture will be active and visible right now to all C Academy students.
+                  </p>
+                </div>
+              )}
             </div>
 
+            {/* YouTube Video Lecture */}
+            <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xs space-y-3">
+              <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
+                <Youtube className="w-4 h-4 fill-red-500 text-red-500" />
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
+                  YouTube Video Lecture
+                </h4>
+              </div>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                Paste your YouTube video link or ID (e.g. <code className="font-mono text-[10px]">https://youtu.be/...</code>).
+              </p>
+              <input
+                type="text"
+                value={youtubeVideoId}
+                onChange={(e) => setYoutubeVideoId(e.target.value)}
+                placeholder="e.g. ZnL2ZK0-KHg or https://youtu.be/..."
+                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white font-mono"
+              />
+
+              {cleanVideoId && (
+                <div className="mt-2 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 relative aspect-video bg-slate-950">
+                  <img
+                    src={`https://i.ytimg.com/vi/${cleanVideoId}/hqdefault.jpg`}
+                    alt="YouTube Video Preview"
+                    className="w-full h-full object-cover"
+                  />
+                  <a
+                    href={`https://www.youtube.com/watch?v=${cleanVideoId}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="absolute inset-0 bg-black/40 hover:bg-black/20 flex items-center justify-center transition-colors text-white font-bold text-xs gap-1"
+                  >
+                    <Play className="w-4 h-4 fill-white" />
+                    <span>Open Video ↗</span>
+                  </a>
+                </div>
+              )}
+            </div>
+
+            {/* YouTube Description Snippet */}
             <YouTubeDescriptionSnippetBox
               title="YouTube Description Snippet"
               snippetText={cLessonSnippet}

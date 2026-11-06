@@ -594,7 +594,7 @@ service cloud.firestore {
              d.keys().hasOnly([
                'id', 'dayNumber', 'title', 'slug', 'summary', 'durationMinutes',
                'content', 'codeSnippet', 'expectedOutput', 'youtubeVideoId',
-               'practiceQuestions', 'quiz', 'isPublished', 'updatedAt'
+               'practiceQuestions', 'quiz', 'isPublished', 'status', 'scheduledAt', 'updatedAt'
              ]) &&
              d.id == lessonId &&
              isBoundedString(d.id, 1, 100) &&
@@ -610,6 +610,8 @@ service cloud.firestore {
              isBoundedList(d.practiceQuestions, 0, 50) &&
              isBoundedList(d.quiz, 0, 50) &&
              d.isPublished is bool &&
+             (!('status' in d) || isBoundedString(d.status, 0, 50)) &&
+             (!('scheduledAt' in d) || isBoundedString(d.scheduledAt, 0, 100)) &&
              (!('updatedAt' in d) || isNonNegativeNumber(d.updatedAt, 10000000000000));
     }
 

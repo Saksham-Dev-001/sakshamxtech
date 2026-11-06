@@ -29,6 +29,8 @@ export const CAcademyPage: React.FC<CAcademyPageProps> = ({ navigate }) => {
   const { cLessons, addCLesson, updateCLesson, trackEvent } = useApp();
   const { isAdmin } = useAuth();
 
+  const sortedLessons = [...cLessons].sort((a, b) => (a.dayNumber || 0) - (b.dayNumber || 0));
+
   // Inline Admin Modal State
   const [editorModal, setEditorModal] = useState<{
     isOpen: boolean;
@@ -81,7 +83,7 @@ export const CAcademyPage: React.FC<CAcademyPageProps> = ({ navigate }) => {
     <div className="py-8 sm:py-12 max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 text-slate-900 dark:text-slate-100">
       <SEOHead
         title="C Programming Academy | Master Systems Programming | SakshamXTech"
-        description="Structured 10-day C programming course with hands-on exercises, memory layout deep-dives, video lectures, and interactive coding playground."
+        description="Structured 30-day comprehensive C programming course with hands-on exercises, memory layout deep-dives, video lectures, and interactive coding playground."
       />
 
       {/* Breadcrumb matching Mockup */}
@@ -197,7 +199,7 @@ int main() {
           )}
         </div>
 
-        {cLessons.map((lesson) => (
+        {sortedLessons.map((lesson) => (
           <div
             key={lesson.id}
             onClick={() => {
