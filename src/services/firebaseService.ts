@@ -179,24 +179,87 @@ export const deleteItemFromFirestore = async (
   }
 };
 
+export function unmarshalFirestoreFields(fields: Record<string, any>): Record<string, any> {
+  const result: Record<string, any> = {};
+  for (const [key, val] of Object.entries(fields)) {
+    result[key] = unmarshalFirestoreValue(val);
+  }
+  return result;
+}
+
+export function unmarshalFirestoreValue(val: any): any {
+  if (!val || typeof val !== 'object') return val;
+  if ('stringValue' in val) return val.stringValue;
+  if ('integerValue' in val) return parseInt(val.integerValue, 10);
+  if ('doubleValue' in val) return parseFloat(val.doubleValue);
+  if ('booleanValue' in val) return val.booleanValue;
+  if ('timestampValue' in val) return val.timestampValue;
+  if ('nullValue' in val) return null;
+  if ('arrayValue' in val) {
+    const arr = val.arrayValue?.values || [];
+    return arr.map(unmarshalFirestoreValue);
+  }
+  if ('mapValue' in val) {
+    return unmarshalFirestoreFields(val.mapValue?.fields || {});
+  }
+  return val;
+}
+
+const FIRESTORE_REST_BASE = 'https://firestore.googleapis.com/v1/projects/sakshamxtech-7fe06/databases/(default)/documents';
+
+export const fetchCollectionViaRest = async <T>(collectionName: string): Promise<T[] | null> => {
+  try {
+    const res = await fetch(`${FIRESTORE_REST_BASE}/${collectionName}?pageSize=100`, {
+      headers: { 'Accept': 'application/json' },
+      cache: 'no-store'
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const docs = data.documents || [];
+    const items: T[] = docs.map((d: any) => unmarshalFirestoreFields(d.fields || {}) as T);
+    return items;
+  } catch (err) {
+    console.warn(`Firestore REST fetch failed for ${collectionName}:`, err);
+    return null;
+  }
+};
+
+export const fetchDocViaRest = async <T>(collectionName: string, docId: string): Promise<T | null> => {
+  try {
+    const res = await fetch(`${FIRESTORE_REST_BASE}/${collectionName}/${docId}`, {
+      headers: { 'Accept': 'application/json' },
+      cache: 'no-store'
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data.fields) return null;
+    return unmarshalFirestoreFields(data.fields) as T;
+  } catch (err) {
+    console.warn(`Firestore REST fetch failed for ${collectionName}/${docId}:`, err);
+    return null;
+  }
+};
+
 // Fetch Entire Collection
 export const fetchCollectionFromFirestore = async <T>(
   collectionName: string
 ): Promise<T[] | null> => {
   const { isConnected, db } = initFirebase();
-  if (!isConnected || !db) return null;
-
-  try {
-    const querySnapshot = await getDocs(collection(db, collectionName));
-    const items: T[] = [];
-    querySnapshot.forEach((doc) => {
-      items.push(doc.data() as T);
-    });
-    return items;
-  } catch (err) {
-    console.error(`Failed to fetch ${collectionName} from Firestore:`, err);
-    return null;
+  if (isConnected && db) {
+    try {
+      const querySnapshot = await getDocs(collection(db, collectionName));
+      const items: T[] = [];
+      querySnapshot.forEach((doc) => {
+        items.push(doc.data() as T);
+      });
+      return items;
+    } catch (err) {
+      console.warn(`Firebase SDK fetch failed for ${collectionName}, trying REST fallback:`, err);
+    }
   }
+
+  // Pure cloud Firestore REST fallback (zero-dependency, guaranteed on any device)
+  return fetchCollectionViaRest<T>(collectionName);
 };
 
 // Save a Single Configuration Document
@@ -225,19 +288,20 @@ export const fetchDocFromFirestore = async <T>(
   docId: string
 ): Promise<T | null> => {
   const { isConnected, db } = initFirebase();
-  if (!isConnected || !db) return null;
-
-  try {
-    const ref = doc(db, collectionName, docId);
-    const snap = await getDoc(ref);
-    if (snap.exists()) {
-      return snap.data() as T;
+  if (isConnected && db) {
+    try {
+      const ref = doc(db, collectionName, docId);
+      const snap = await getDoc(ref);
+      if (snap.exists()) {
+        return snap.data() as T;
+      }
+    } catch (err) {
+      console.warn(`Firebase SDK fetch doc failed for ${collectionName}/${docId}, trying REST fallback:`, err);
     }
-    return null;
-  } catch (err) {
-    console.error(`Failed to fetch doc ${docId} from ${collectionName}:`, err);
-    return null;
   }
+
+  // Pure cloud Firestore REST fallback
+  return fetchDocViaRest<T>(collectionName, docId);
 };
 
 // Real-time automatic listener for entire Firestore collection

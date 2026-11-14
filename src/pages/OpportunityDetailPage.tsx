@@ -24,19 +24,28 @@ interface OpportunityDetailPageProps {
 }
 
 export const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({ slug, navigate }) => {
-  const { opportunities, updateOpportunity, isBookmarked, toggleBookmark, trackEvent } = useApp();
+  const { opportunities, updateOpportunity, isBookmarked, toggleBookmark, trackEvent, isFirebaseHydrated } = useApp();
   const { isAdmin } = useAuth();
   const [isEditOpen, setIsEditOpen] = useState(false);
 
-  const opp = opportunities.find((o) => o.slug === slug) || opportunities[0];
+  const opp = opportunities.find((o) => o.slug === slug);
 
   if (!opp) {
+    if (!isFirebaseHydrated) {
+      return (
+        <div className="py-12 max-w-4xl mx-auto px-4 space-y-6 animate-pulse">
+          <div className="h-6 w-32 bg-slate-200 dark:bg-slate-800 rounded-lg"></div>
+          <div className="h-10 w-3/4 bg-slate-200 dark:bg-slate-800 rounded-xl"></div>
+          <div className="h-40 w-full bg-slate-200 dark:bg-slate-800 rounded-2xl"></div>
+        </div>
+      );
+    }
     return (
       <div className="py-20 text-center text-slate-400">
         <p>Opportunity not found.</p>
         <button
           onClick={() => navigate('/opportunities')}
-          className="mt-4 px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-lg text-xs"
+          className="mt-4 px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-lg text-xs cursor-pointer"
         >
           Return to Opportunities
         </button>

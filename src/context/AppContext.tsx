@@ -137,28 +137,6 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-const PREFIX = 'sakshamxtech_db_';
-
-// Persistent Deleted IDs tracking so deleted documents can NEVER resurrect
-const getDeletedIds = (collectionName: string): Set<string> => {
-  try {
-    const raw = localStorage.getItem(`${PREFIX}deleted_${collectionName}`);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) return new Set(parsed);
-    }
-  } catch {}
-  return new Set();
-};
-
-const markItemAsDeleted = (collectionName: string, id: string) => {
-  try {
-    const current = getDeletedIds(collectionName);
-    current.add(id);
-    localStorage.setItem(`${PREFIX}deleted_${collectionName}`, JSON.stringify(Array.from(current)));
-  } catch {}
-};
-
 const sanitizeAvatarUrl = (url?: string): string => {
   if (!url || url.includes('unsplash') || url.includes('file_00000000') || url.includes('/assets/aistudio/')) {
     return '/assets/branding/saksham_avatar.png';
@@ -167,162 +145,43 @@ const sanitizeAvatarUrl = (url?: string): string => {
 };
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Initialize state with local storage fallback (strictly excluding any deleted items)
-  const [siteSettings, setSiteSettings] = useState<SiteSettings>(() => {
-    const saved = localStorage.getItem(`${PREFIX}settings`);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        parsed.creatorAvatarUrl = sanitizeAvatarUrl(parsed.creatorAvatarUrl);
-        return parsed;
-      } catch (e) {
-        return initialSiteSettings;
-      }
-    }
-    return initialSiteSettings;
-  });
-
-  const [blogs, setBlogs] = useState<BlogPost[]>(() => {
-    const deleted = getDeletedIds('blogs');
-    const saved = localStorage.getItem(`${PREFIX}blogs`);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          return parsed.filter((b: BlogPost) => !deleted.has(b.id));
-        }
-      } catch {}
-    }
-    return initialBlogs.filter((b) => !deleted.has(b.id));
-  });
-
-  const [arcadeSolutions, setArcadeSolutions] = useState<ArcadeSolution[]>(() => {
-    const deleted = getDeletedIds('arcadeSolutions');
-    const saved = localStorage.getItem(`${PREFIX}arcade`);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          return parsed.filter((s: ArcadeSolution) => !deleted.has(s.id));
-        }
-      } catch {}
-    }
-    return initialArcadeSolutions.filter((s) => !deleted.has(s.id));
-  });
-
-  const [unstopProblems, setUnstopProblems] = useState<UnstopProblem[]>(() => {
-    const deleted = getDeletedIds('unstopProblems');
-    const saved = localStorage.getItem(`${PREFIX}unstop`);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          return parsed.filter((p: UnstopProblem) => !deleted.has(p.id));
-        }
-      } catch {}
-    }
-    return initialUnstopProblems.filter((p) => !deleted.has(p.id));
-  });
-
-  const [opportunities, setOpportunities] = useState<Opportunity[]>(() => {
-    const deleted = getDeletedIds('opportunities');
-    const saved = localStorage.getItem(`${PREFIX}opportunities`);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          return parsed.filter((o: Opportunity) => !deleted.has(o.id));
-        }
-      } catch {}
-    }
-    return initialOpportunities.filter((o) => !deleted.has(o.id));
-  });
-
-  const [swags, setSwags] = useState<SwagItem[]>(() => {
-    const deleted = getDeletedIds('swags');
-    const saved = localStorage.getItem(`${PREFIX}swags`);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          return parsed.filter((s: SwagItem) => !deleted.has(s.id));
-        }
-      } catch {}
-    }
-    return initialSwags.filter((s) => !deleted.has(s.id));
-  });
-
-  const [cLessons, setCLessons] = useState<CLesson[]>(() => {
-    const deleted = getDeletedIds('cLessons');
-    const saved = localStorage.getItem(`${PREFIX}clessons`);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length >= initialCLessons.length) {
-          return parsed.filter((l: CLesson) => !deleted.has(l.id));
-        }
-        // If localStorage has fewer lessons, merge initialCLessons so all 30 are available!
-        const existingMap = new Map<string, CLesson>(parsed.map((l: CLesson) => [l.id, l]));
-        return initialCLessons
-          .filter((initL) => !deleted.has(initL.id))
-          .map((initL) => existingMap.get(initL.id) || initL);
-      } catch {}
-    }
-    return initialCLessons.filter((l) => !deleted.has(l.id));
-  });
-
-  const [resources, setResources] = useState<ResourceItem[]>(() => {
-    const deleted = getDeletedIds('resources');
-    const saved = localStorage.getItem(`${PREFIX}resources`);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          return parsed.filter((r: ResourceItem) => !deleted.has(r.id));
-        }
-      } catch {}
-    }
-    return initialResources.filter((r) => !deleted.has(r.id));
-  });
-
-  const [arcadeCalculatorConfig, setArcadeCalculatorConfig] = useState<ArcadeCalculatorConfig>(() => {
-    const saved = localStorage.getItem(`${PREFIX}arcade_calc`);
-    return saved ? JSON.parse(saved) : initialArcadeCalculatorConfig;
-  });
-
-  const [analytics, setAnalytics] = useState<AnalyticsMetric>(() => {
-    const saved = localStorage.getItem(`${PREFIX}analytics`);
-    return saved ? JSON.parse(saved) : initialAnalytics;
-  });
-
+  // Pure Cloud Firestore as Single Source of Truth (SSOT).
+  // No collection data is ever fetched, initialized, or overwritten from localStorage.
+  const [siteSettings, setSiteSettings] = useState<SiteSettings>(initialSiteSettings);
+  const [blogs, setBlogs] = useState<BlogPost[]>([]);
+  const [arcadeSolutions, setArcadeSolutions] = useState<ArcadeSolution[]>([]);
+  const [unstopProblems, setUnstopProblems] = useState<UnstopProblem[]>([]);
+  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
+  const [swags, setSwags] = useState<SwagItem[]>([]);
+  const [cLessons, setCLessons] = useState<CLesson[]>([]);
+  const [resources, setResources] = useState<ResourceItem[]>([]);
+  const [arcadeCalculatorConfig, setArcadeCalculatorConfig] = useState<ArcadeCalculatorConfig>(initialArcadeCalculatorConfig);
+  const [analytics, setAnalytics] = useState<AnalyticsMetric>(initialAnalytics);
   const [leaderboard] = useState<LeaderboardUser[]>(initialLeaderboard);
 
+  // Client-only UI preferences (theme & bookmarks)
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
-    const saved = localStorage.getItem('sakshamxtech_theme');
-    return saved === 'dark' ? 'dark' : 'light';
+    try {
+      const saved = localStorage.getItem('sakshamxtech_theme');
+      return saved === 'dark' ? 'dark' : 'light';
+    } catch {
+      return 'light';
+    }
   });
 
   const [bookmarks, setBookmarks] = useState<string[]>(() => {
-    const saved = localStorage.getItem(`${PREFIX}bookmarks`);
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem('sakshamxtech_bookmarks');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
   });
 
   // YouTube live automatic feed state
-  const [youtubeVideos, setYoutubeVideos] = useState<YouTubeVideoItem[]>(() => {
-    try {
-      const saved = localStorage.getItem(`${PREFIX}youtube_videos`);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0 && parsed[0]?.videoId === 'm26u-QxPw1E') {
-          return parsed.map((v: YouTubeVideoItem) => ({
-            ...v,
-            publishedAt: v.publishedAtRaw ? relativePublished(v.publishedAtRaw) : v.publishedAt,
-          }));
-        }
-      }
-    } catch {}
-    return getAuthenticYouTubeVideosWithLiveTimings();
-  });
+  const [youtubeVideos, setYoutubeVideos] = useState<YouTubeVideoItem[]>(() =>
+    getAuthenticYouTubeVideosWithLiveTimings()
+  );
   const [isFetchingYouTube, setIsFetchingYouTube] = useState(false);
 
   const refreshYouTubeVideos = async (force = false) => {
@@ -334,7 +193,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const live = await fetchYouTubeVideos({ forceRefresh: force });
       if (live && live.length > 0) {
         setYoutubeVideos(live);
-        localStorage.setItem(`${PREFIX}youtube_videos`, JSON.stringify(live));
         saveDocToFirestore('appConfig', 'youtubeFeed', {
           lastUpdated: new Date().toISOString(),
           videos: live
@@ -350,7 +208,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const addCustomYouTubeVideo = async (video: YouTubeVideoItem): Promise<boolean> => {
     const updated = [video, ...youtubeVideos.filter((v) => (v.videoId || v.id) !== (video.videoId || video.id))];
     setYoutubeVideos(updated);
-    localStorage.setItem(`${PREFIX}youtube_videos`, JSON.stringify(updated));
     await saveDocToFirestore('appConfig', 'youtubeFeed', {
       lastUpdated: new Date().toISOString(),
       videos: updated
@@ -361,7 +218,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const deleteCustomYouTubeVideo = async (id: string): Promise<boolean> => {
     const updated = youtubeVideos.filter((v) => v.id !== id && v.videoId !== id);
     setYoutubeVideos(updated);
-    localStorage.setItem(`${PREFIX}youtube_videos`, JSON.stringify(updated));
     await saveDocToFirestore('appConfig', 'youtubeFeed', {
       lastUpdated: new Date().toISOString(),
       videos: updated
@@ -371,7 +227,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const saveCustomYouTubeVideos = async (videos: YouTubeVideoItem[]): Promise<boolean> => {
     setYoutubeVideos(videos);
-    localStorage.setItem(`${PREFIX}youtube_videos`, JSON.stringify(videos));
     await saveDocToFirestore('appConfig', 'youtubeFeed', {
       lastUpdated: new Date().toISOString(),
       videos
@@ -412,53 +267,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       root.classList.add('light');
       root.classList.remove('dark');
     }
-    localStorage.setItem('sakshamxtech_theme', theme);
+    try {
+      localStorage.setItem('sakshamxtech_theme', theme);
+    } catch {}
   }, [theme]);
 
-  // Persist handlers
+  // Bookmarks synchronization (client UI preference only)
   useEffect(() => {
-    localStorage.setItem(`${PREFIX}settings`, JSON.stringify(siteSettings));
-  }, [siteSettings]);
-
-  useEffect(() => {
-    localStorage.setItem(`${PREFIX}blogs`, JSON.stringify(blogs));
-  }, [blogs]);
-
-  useEffect(() => {
-    localStorage.setItem(`${PREFIX}arcade`, JSON.stringify(arcadeSolutions));
-  }, [arcadeSolutions]);
-
-  useEffect(() => {
-    localStorage.setItem(`${PREFIX}unstop`, JSON.stringify(unstopProblems));
-  }, [unstopProblems]);
-
-  useEffect(() => {
-    localStorage.setItem(`${PREFIX}opportunities`, JSON.stringify(opportunities));
-  }, [opportunities]);
-
-  useEffect(() => {
-    localStorage.setItem(`${PREFIX}swags`, JSON.stringify(swags));
-  }, [swags]);
-
-  useEffect(() => {
-    localStorage.setItem(`${PREFIX}clessons`, JSON.stringify(cLessons));
-  }, [cLessons]);
-
-  useEffect(() => {
-    localStorage.setItem(`${PREFIX}resources`, JSON.stringify(resources));
-  }, [resources]);
-
-  useEffect(() => {
-    localStorage.setItem(`${PREFIX}arcade_calc`, JSON.stringify(arcadeCalculatorConfig));
-  }, [arcadeCalculatorConfig]);
-
-  useEffect(() => {
-    localStorage.setItem(`${PREFIX}analytics`, JSON.stringify(analytics));
-  }, [analytics]);
-
-  useEffect(() => {
-    localStorage.setItem(`${PREFIX}bookmarks`, JSON.stringify(bookmarks));
+    try {
+      localStorage.setItem('sakshamxtech_bookmarks', JSON.stringify(bookmarks));
+    } catch {}
   }, [bookmarks]);
+
+  // One-time startup purge of all legacy localStorage database cache keys across devices
+  useEffect(() => {
+    try {
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && (k.startsWith('sakshamxtech_db_') || k.startsWith('sx_db_') || k.startsWith('sakshamxtech_v1_'))) {
+          keysToRemove.push(k);
+        }
+      }
+      keysToRemove.forEach((k) => localStorage.removeItem(k));
+    } catch {}
+  }, []);
 
   // Real-time Cloud Firebase hydration & sync state
   const [isFirebaseConnected, setIsFirebaseConnected] = useState(false);
@@ -488,64 +321,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const hydrateCollection = async <T extends { id: string; updatedAt?: number }>(
     colName: string,
-    fallbackItems: T[],
-    setter: React.Dispatch<React.SetStateAction<T[]>>,
-    localStorageKey: string,
-    forceSeed: boolean
+    setter: React.Dispatch<React.SetStateAction<T[]>>
   ) => {
     try {
       const cloudItems = await fetchCollectionFromFirestore<T>(colName);
-      const deleted = getDeletedIds(colName);
-
       if (cloudItems !== null) {
-        // Firestore is reachable and responded!
-        if (cloudItems.length === 0) {
-          const initKey = `${PREFIX}has_seeded_${colName}`;
-          const alreadySeeded = localStorage.getItem(initKey);
-          if (!alreadySeeded && forceSeed) {
-            // First-time auto-seed only on clean empty database
-            const toSeed = fallbackItems.filter((item) => !deleted.has(item.id));
-            for (const item of toSeed) {
-              await saveItemToFirestore(colName, item);
-            }
-            try { localStorage.setItem(initKey, 'true'); } catch {}
-            setter(toSeed);
-            try { localStorage.setItem(localStorageKey, JSON.stringify(toSeed)); } catch {}
-            return;
-          }
-          // If already seeded in the past and Firestore returned 0 docs, user deleted them all!
-          setter([]);
-          try { localStorage.setItem(localStorageKey, JSON.stringify([])); } catch {}
-          return;
-        }
-
-        // Firestore has data: Cloud items are AUTHORITATIVE!
-        // Cloud items that are not deleted are kept:
-        let authoritative = cloudItems.filter((item) => !deleted.has(item.id));
-
-        // For cLessons, ensure all 30 lessons exist if not explicitly deleted
         if (colName === 'cLessons') {
-          const map = new Map<string, CLesson>();
-          (authoritative as unknown as CLesson[]).forEach((l) => map.set(l.id, l));
-          initialCLessons.forEach((initL) => {
-            if (!map.has(initL.id) && !deleted.has(initL.id)) {
-              map.set(initL.id, initL);
-              saveItemToFirestore('cLessons', initL).catch(() => {});
-            }
-          });
-          authoritative = (Array.from(map.values()).sort((a, b) => (a.dayNumber || 0) - (b.dayNumber || 0))) as unknown as T[];
+          const sorted = (cloudItems as unknown as CLesson[]).sort(
+            (a, b) => (a.dayNumber || 0) - (b.dayNumber || 0)
+          ) as unknown as T[];
+          setter(sorted);
+        } else {
+          setter(cloudItems);
         }
-
-        try { localStorage.setItem(`${PREFIX}has_seeded_${colName}`, 'true'); } catch {}
-        setter(authoritative);
-        try { localStorage.setItem(localStorageKey, JSON.stringify(authoritative)); } catch {}
       }
     } catch (err) {
       console.warn(`Firestore collection hydration warning for ${colName}:`, err);
     }
   };
 
-  const hydrateFromFirebase = async (forceSeedIfEmpty = true) => {
+  const hydrateFromFirebase = async (_forceSeedIfEmpty = false) => {
     const { isConnected } = initFirebase();
     setIsFirebaseConnected(isConnected);
     if (!isConnected) {
@@ -556,86 +351,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       setCloudSyncStatus('syncing');
 
-      // Sync cloud deleted records metadata so cross-device deletions are immediately recognized
-      try {
-        const cloudDeleted = await fetchDocFromFirestore<Record<string, number | boolean>>('appConfig', 'deletedRecords');
-        if (cloudDeleted && typeof cloudDeleted === 'object') {
-          Object.keys(cloudDeleted).forEach((delId) => {
-            if (delId.startsWith('blog-') || delId.startsWith('blog_')) markItemAsDeleted('blogs', delId);
-            else if (delId.startsWith('arc-')) markItemAsDeleted('arcadeSolutions', delId);
-            else if (delId.startsWith('uns-')) markItemAsDeleted('unstopProblems', delId);
-            else if (delId.startsWith('opp-')) markItemAsDeleted('opportunities', delId);
-            else if (delId.startsWith('swag-')) markItemAsDeleted('swags', delId);
-            else if (delId.startsWith('c-')) markItemAsDeleted('cLessons', delId);
-            else if (delId.startsWith('res-')) markItemAsDeleted('resources', delId);
-            else markItemAsDeleted('blogs', delId);
-          });
-        }
-      } catch {}
-
-      // Hydrate all collections in parallel from Firestore
+      // Hydrate all collections strictly from Firestore (Single Source of Truth)
       await Promise.all([
-        hydrateCollection<BlogPost>(
-          'blogs',
-          blogs.length > 0 ? blogs : initialBlogs,
-          setBlogs,
-          `${PREFIX}blogs`,
-          forceSeedIfEmpty
-        ),
-        hydrateCollection<ArcadeSolution>(
-          'arcadeSolutions',
-          arcadeSolutions.length > 0 ? arcadeSolutions : initialArcadeSolutions,
-          setArcadeSolutions,
-          `${PREFIX}arcade`,
-          forceSeedIfEmpty
-        ),
-        hydrateCollection<UnstopProblem>(
-          'unstopProblems',
-          unstopProblems.length > 0 ? unstopProblems : initialUnstopProblems,
-          setUnstopProblems,
-          `${PREFIX}unstop`,
-          forceSeedIfEmpty
-        ),
-        hydrateCollection<Opportunity>(
-          'opportunities',
-          opportunities.length > 0 ? opportunities : initialOpportunities,
-          setOpportunities,
-          `${PREFIX}opportunities`,
-          forceSeedIfEmpty
-        ),
-        hydrateCollection<SwagItem>(
-          'swags',
-          swags.length > 0 ? swags : initialSwags,
-          setSwags,
-          `${PREFIX}swags`,
-          forceSeedIfEmpty
-        ),
-        hydrateCollection<CLesson>(
-          'cLessons',
-          cLessons.length > 0 ? cLessons : initialCLessons,
-          setCLessons,
-          `${PREFIX}clessons`,
-          forceSeedIfEmpty
-        ),
-        hydrateCollection<ResourceItem>(
-          'resources',
-          resources.length > 0 ? resources : initialResources,
-          setResources,
-          `${PREFIX}resources`,
-          forceSeedIfEmpty
-        ),
+        hydrateCollection<BlogPost>('blogs', setBlogs),
+        hydrateCollection<ArcadeSolution>('arcadeSolutions', setArcadeSolutions),
+        hydrateCollection<UnstopProblem>('unstopProblems', setUnstopProblems),
+        hydrateCollection<Opportunity>('opportunities', setOpportunities),
+        hydrateCollection<SwagItem>('swags', setSwags),
+        hydrateCollection<CLesson>('cLessons', setCLessons),
+        hydrateCollection<ResourceItem>('resources', setResources),
         // Site Settings
         (async () => {
           const cloudSettings = await fetchDocFromFirestore<SiteSettings>('appConfig', 'siteSettings');
-          if (!cloudSettings && forceSeedIfEmpty) {
-            await saveDocToFirestore('appConfig', 'siteSettings', siteSettings || initialSiteSettings);
-          } else if (cloudSettings) {
+          if (cloudSettings) {
             const sanitized: SiteSettings = {
               ...cloudSettings,
               creatorAvatarUrl: sanitizeAvatarUrl(cloudSettings.creatorAvatarUrl),
             };
             setSiteSettings(sanitized);
-            try { localStorage.setItem(`${PREFIX}settings`, JSON.stringify(sanitized)); } catch {}
             if (cloudSettings.creatorAvatarUrl !== sanitized.creatorAvatarUrl) {
               saveDocToFirestore('appConfig', 'siteSettings', sanitized).catch(() => {});
             }
@@ -644,23 +377,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         // Arcade Calculator Config
         (async () => {
           const cloudCalc = await fetchDocFromFirestore<ArcadeCalculatorConfig>('appConfig', 'arcadeCalculatorConfig');
-          if (!cloudCalc && forceSeedIfEmpty) {
-            await saveDocToFirestore('appConfig', 'arcadeCalculatorConfig', arcadeCalculatorConfig || initialArcadeCalculatorConfig);
-          } else if (cloudCalc) {
+          if (cloudCalc) {
             setArcadeCalculatorConfig(cloudCalc);
           }
         })(),
         // YouTube Live Feed
         (async () => {
           const cloudYt = await fetchDocFromFirestore<{ videos: YouTubeVideoItem[] }>('appConfig', 'youtubeFeed');
-          if ((!cloudYt || !cloudYt.videos || cloudYt.videos.length === 0) && forceSeedIfEmpty) {
-            const initialFeed = authenticYouTubeVideos;
-            await saveDocToFirestore('appConfig', 'youtubeFeed', { videos: initialFeed, updatedAt: Date.now() });
-            setYoutubeVideos(initialFeed);
-            try { localStorage.setItem(`${PREFIX}youtube_videos`, JSON.stringify(initialFeed)); } catch {}
-          } else if (cloudYt && Array.isArray(cloudYt.videos) && cloudYt.videos.length > 0) {
+          if (cloudYt && Array.isArray(cloudYt.videos) && cloudYt.videos.length > 0) {
             setYoutubeVideos(cloudYt.videos);
-            try { localStorage.setItem(`${PREFIX}youtube_videos`, JSON.stringify(cloudYt.videos)); } catch {}
           }
         })(),
       ]);
@@ -674,12 +399,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  // Real-time automatic listeners for all collections (authoritative cloud snapshot, strictly no resurrecting)
+  // Real-time automatic listeners for all collections (authoritative cloud snapshot)
   useEffect(() => {
     let unsubs: (() => void)[] = [];
 
     const startRealTimeSync = async () => {
-      await hydrateFromFirebase(true);
+      await hydrateFromFirebase();
 
       const { isConnected } = initFirebase();
       if (!isConnected) return;
@@ -687,12 +412,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // Real-time listener for Blogs
       const unsubB = subscribeToCollection<BlogPost>('blogs', (items) => {
         if (items) {
-          const deleted = getDeletedIds('blogs');
-          const clean = items.filter((b) => !deleted.has(b.id));
-          setBlogs(clean);
-          try {
-            localStorage.setItem(`${PREFIX}blogs`, JSON.stringify(clean));
-          } catch {}
+          setBlogs(items);
           setLastCloudSyncTime(new Date().toLocaleTimeString('en-US'));
         }
       });
@@ -701,12 +421,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // Real-time listener for Arcade Solutions
       const unsubA = subscribeToCollection<ArcadeSolution>('arcadeSolutions', (items) => {
         if (items) {
-          const deleted = getDeletedIds('arcadeSolutions');
-          const clean = items.filter((s) => !deleted.has(s.id));
-          setArcadeSolutions(clean);
-          try {
-            localStorage.setItem(`${PREFIX}arcade`, JSON.stringify(clean));
-          } catch {}
+          setArcadeSolutions(items);
           setLastCloudSyncTime(new Date().toLocaleTimeString('en-US'));
         }
       });
@@ -715,12 +430,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // Real-time listener for Unstop Problems
       const unsubU = subscribeToCollection<UnstopProblem>('unstopProblems', (items) => {
         if (items) {
-          const deleted = getDeletedIds('unstopProblems');
-          const clean = items.filter((p) => !deleted.has(p.id));
-          setUnstopProblems(clean);
-          try {
-            localStorage.setItem(`${PREFIX}unstop`, JSON.stringify(clean));
-          } catch {}
+          setUnstopProblems(items);
           setLastCloudSyncTime(new Date().toLocaleTimeString('en-US'));
         }
       });
@@ -729,12 +439,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // Real-time listener for Opportunities
       const unsubO = subscribeToCollection<Opportunity>('opportunities', (items) => {
         if (items) {
-          const deleted = getDeletedIds('opportunities');
-          const clean = items.filter((o) => !deleted.has(o.id));
-          setOpportunities(clean);
-          try {
-            localStorage.setItem(`${PREFIX}opportunities`, JSON.stringify(clean));
-          } catch {}
+          setOpportunities(items);
           setLastCloudSyncTime(new Date().toLocaleTimeString('en-US'));
         }
       });
@@ -743,12 +448,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // Real-time listener for Swags
       const unsubS = subscribeToCollection<SwagItem>('swags', (items) => {
         if (items) {
-          const deleted = getDeletedIds('swags');
-          const clean = items.filter((s) => !deleted.has(s.id));
-          setSwags(clean);
-          try {
-            localStorage.setItem(`${PREFIX}swags`, JSON.stringify(clean));
-          } catch {}
+          setSwags(items);
           setLastCloudSyncTime(new Date().toLocaleTimeString('en-US'));
         }
       });
@@ -757,14 +457,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // Real-time listener for C Lessons
       const unsubC = subscribeToCollection<CLesson>('cLessons', (items) => {
         if (items) {
-          const deleted = getDeletedIds('cLessons');
-          const clean = items
-            .filter((l) => !deleted.has(l.id))
-            .sort((a, b) => (a.dayNumber || 0) - (b.dayNumber || 0));
-          setCLessons(clean);
-          try {
-            localStorage.setItem(`${PREFIX}clessons`, JSON.stringify(clean));
-          } catch {}
+          const sorted = [...items].sort((a, b) => (a.dayNumber || 0) - (b.dayNumber || 0));
+          setCLessons(sorted);
           setLastCloudSyncTime(new Date().toLocaleTimeString('en-US'));
         }
       });
@@ -773,12 +467,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // Real-time listener for Resources
       const unsubR = subscribeToCollection<ResourceItem>('resources', (items) => {
         if (items) {
-          const deleted = getDeletedIds('resources');
-          const clean = items.filter((r) => !deleted.has(r.id));
-          setResources(clean);
-          try {
-            localStorage.setItem(`${PREFIX}resources`, JSON.stringify(clean));
-          } catch {}
+          setResources(items);
           setLastCloudSyncTime(new Date().toLocaleTimeString('en-US'));
         }
       });
@@ -787,14 +476,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // Real-time listener for Site Settings
       const unsubCfg = subscribeToDoc<SiteSettings>('appConfig', 'siteSettings', (data) => {
         if (data) {
-          const sanitized: SiteSettings = {
+          setSiteSettings({
             ...data,
             creatorAvatarUrl: sanitizeAvatarUrl(data.creatorAvatarUrl),
-          };
-          setSiteSettings(sanitized);
-          try {
-            localStorage.setItem(`${PREFIX}settings`, JSON.stringify(sanitized));
-          } catch {}
+          });
           setLastCloudSyncTime(new Date().toLocaleTimeString('en-US'));
         }
       });
@@ -813,9 +498,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const unsubYt = subscribeToDoc<{ videos: YouTubeVideoItem[] }>('appConfig', 'youtubeFeed', (data) => {
         if (data && Array.isArray(data.videos) && data.videos.length > 0) {
           setYoutubeVideos(data.videos);
-          try {
-            localStorage.setItem(`${PREFIX}youtube_videos`, JSON.stringify(data.videos));
-          } catch {}
           setLastCloudSyncTime(new Date().toLocaleTimeString('en-US'));
         }
       });
@@ -925,9 +607,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const updateSiteSettings = (settings: Partial<SiteSettings>) => {
     setSiteSettings((prev) => {
       const next = { ...prev, ...settings };
-      try {
-        localStorage.setItem(`${PREFIX}settings`, JSON.stringify(next));
-      } catch {}
       setCloudSyncStatus('syncing');
       saveDocToFirestore('appConfig', 'siteSettings', next).then(markSyncSuccess).catch(() => {});
       return next;
@@ -942,13 +621,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       views: 0,
       updatedAt: Date.now(),
     };
-    setBlogs((prev) => {
-      const next = [newBlog, ...prev];
-      try {
-        localStorage.setItem(`${PREFIX}blogs`, JSON.stringify(next));
-      } catch {}
-      return next;
-    });
+    setBlogs((prev) => [newBlog, ...prev]);
     setCloudSyncStatus('syncing');
     saveItemToFirestore('blogs', newBlog).then(markSyncSuccess).catch(() => {});
   };
@@ -957,9 +630,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setBlogs((prev) => {
       const nowTs = Date.now();
       const next = prev.map((b) => (b.id === id ? { ...b, ...updated, updatedAt: nowTs } : b));
-      try {
-        localStorage.setItem(`${PREFIX}blogs`, JSON.stringify(next));
-      } catch {}
       const target = next.find((b) => b.id === id);
       if (target) {
         setCloudSyncStatus('syncing');
@@ -970,17 +640,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const deleteBlog = (id: string) => {
-    markItemAsDeleted('blogs', id);
-    setBlogs((prev) => {
-      const next = prev.filter((b) => b.id !== id);
-      try {
-        localStorage.setItem(`${PREFIX}blogs`, JSON.stringify(next));
-      } catch {}
-      return next;
-    });
+    setBlogs((prev) => prev.filter((b) => b.id !== id));
     setCloudSyncStatus('syncing');
     deleteItemFromFirestore('blogs', id).then(markSyncSuccess).catch(() => {});
-    saveDocToFirestore('appConfig', 'deletedRecords', { [id]: Date.now() }).catch(() => {});
   };
 
   // Arcade Solutions CRUD (Automatic Cloud Sync)
@@ -990,13 +652,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       id: 'arc-' + Date.now(),
       updatedAt: Date.now(),
     };
-    setArcadeSolutions((prev) => {
-      const next = [newSolution, ...prev];
-      try {
-        localStorage.setItem(`${PREFIX}arcade`, JSON.stringify(next));
-      } catch {}
-      return next;
-    });
+    setArcadeSolutions((prev) => [newSolution, ...prev]);
     setCloudSyncStatus('syncing');
     saveItemToFirestore('arcadeSolutions', newSolution).then(markSyncSuccess).catch(() => {});
   };
@@ -1005,9 +661,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setArcadeSolutions((prev) => {
       const nowTs = Date.now();
       const next = prev.map((s) => (s.id === id ? { ...s, ...updated, updatedAt: nowTs } : s));
-      try {
-        localStorage.setItem(`${PREFIX}arcade`, JSON.stringify(next));
-      } catch {}
       const target = next.find((s) => s.id === id);
       if (target) {
         setCloudSyncStatus('syncing');
@@ -1018,17 +671,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const deleteArcadeSolution = (id: string) => {
-    markItemAsDeleted('arcadeSolutions', id);
-    setArcadeSolutions((prev) => {
-      const next = prev.filter((s) => s.id !== id);
-      try {
-        localStorage.setItem(`${PREFIX}arcade`, JSON.stringify(next));
-      } catch {}
-      return next;
-    });
+    setArcadeSolutions((prev) => prev.filter((s) => s.id !== id));
     setCloudSyncStatus('syncing');
     deleteItemFromFirestore('arcadeSolutions', id).then(markSyncSuccess).catch(() => {});
-    saveDocToFirestore('appConfig', 'deletedRecords', { [id]: Date.now() }).catch(() => {});
   };
 
   // Unstop Problems CRUD (Automatic Cloud Sync)
@@ -1038,13 +683,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       id: 'uns-' + Date.now(),
       updatedAt: Date.now(),
     };
-    setUnstopProblems((prev) => {
-      const next = [newProblem, ...prev];
-      try {
-        localStorage.setItem(`${PREFIX}unstop`, JSON.stringify(next));
-      } catch {}
-      return next;
-    });
+    setUnstopProblems((prev) => [newProblem, ...prev]);
     setCloudSyncStatus('syncing');
     saveItemToFirestore('unstopProblems', newProblem).then(markSyncSuccess).catch(() => {});
   };
@@ -1053,9 +692,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setUnstopProblems((prev) => {
       const nowTs = Date.now();
       const next = prev.map((p) => (p.id === id ? { ...p, ...updated, updatedAt: nowTs } : p));
-      try {
-        localStorage.setItem(`${PREFIX}unstop`, JSON.stringify(next));
-      } catch {}
       const target = next.find((p) => p.id === id);
       if (target) {
         setCloudSyncStatus('syncing');
@@ -1066,17 +702,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const deleteUnstopProblem = (id: string) => {
-    markItemAsDeleted('unstopProblems', id);
-    setUnstopProblems((prev) => {
-      const next = prev.filter((p) => p.id !== id);
-      try {
-        localStorage.setItem(`${PREFIX}unstop`, JSON.stringify(next));
-      } catch {}
-      return next;
-    });
+    setUnstopProblems((prev) => prev.filter((p) => p.id !== id));
     setCloudSyncStatus('syncing');
     deleteItemFromFirestore('unstopProblems', id).then(markSyncSuccess).catch(() => {});
-    saveDocToFirestore('appConfig', 'deletedRecords', { [id]: Date.now() }).catch(() => {});
   };
 
   // Opportunities CRUD (Automatic Cloud Sync)
@@ -1087,13 +715,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       clicksCount: 0,
       updatedAt: Date.now(),
     };
-    setOpportunities((prev) => {
-      const next = [newOpp, ...prev];
-      try {
-        localStorage.setItem(`${PREFIX}opportunities`, JSON.stringify(next));
-      } catch {}
-      return next;
-    });
+    setOpportunities((prev) => [newOpp, ...prev]);
     setCloudSyncStatus('syncing');
     saveItemToFirestore('opportunities', newOpp).then(markSyncSuccess).catch(() => {});
   };
@@ -1102,9 +724,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setOpportunities((prev) => {
       const nowTs = Date.now();
       const next = prev.map((o) => (o.id === id ? { ...o, ...updated, updatedAt: nowTs } : o));
-      try {
-        localStorage.setItem(`${PREFIX}opportunities`, JSON.stringify(next));
-      } catch {}
       const target = next.find((o) => o.id === id);
       if (target) {
         setCloudSyncStatus('syncing');
@@ -1115,17 +734,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const deleteOpportunity = (id: string) => {
-    markItemAsDeleted('opportunities', id);
-    setOpportunities((prev) => {
-      const next = prev.filter((o) => o.id !== id);
-      try {
-        localStorage.setItem(`${PREFIX}opportunities`, JSON.stringify(next));
-      } catch {}
-      return next;
-    });
+    setOpportunities((prev) => prev.filter((o) => o.id !== id));
     setCloudSyncStatus('syncing');
     deleteItemFromFirestore('opportunities', id).then(markSyncSuccess).catch(() => {});
-    saveDocToFirestore('appConfig', 'deletedRecords', { [id]: Date.now() }).catch(() => {});
   };
 
   // Swags CRUD (Automatic Cloud Sync)
@@ -1135,13 +746,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       id: 'swag-' + Date.now(),
       updatedAt: Date.now(),
     };
-    setSwags((prev) => {
-      const next = [newSwag, ...prev];
-      try {
-        localStorage.setItem(`${PREFIX}swags`, JSON.stringify(next));
-      } catch {}
-      return next;
-    });
+    setSwags((prev) => [newSwag, ...prev]);
     setCloudSyncStatus('syncing');
     saveItemToFirestore('swags', newSwag).then(markSyncSuccess).catch(() => {});
   };
@@ -1150,9 +755,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setSwags((prev) => {
       const nowTs = Date.now();
       const next = prev.map((s) => (s.id === id ? { ...s, ...updated, updatedAt: nowTs } : s));
-      try {
-        localStorage.setItem(`${PREFIX}swags`, JSON.stringify(next));
-      } catch {}
       const target = next.find((s) => s.id === id);
       if (target) {
         setCloudSyncStatus('syncing');
@@ -1163,17 +765,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const deleteSwag = (id: string) => {
-    markItemAsDeleted('swags', id);
-    setSwags((prev) => {
-      const next = prev.filter((s) => s.id !== id);
-      try {
-        localStorage.setItem(`${PREFIX}swags`, JSON.stringify(next));
-      } catch {}
-      return next;
-    });
+    setSwags((prev) => prev.filter((s) => s.id !== id));
     setCloudSyncStatus('syncing');
     deleteItemFromFirestore('swags', id).then(markSyncSuccess).catch(() => {});
-    saveDocToFirestore('appConfig', 'deletedRecords', { [id]: Date.now() }).catch(() => {});
   };
 
   // C Lessons CRUD (Automatic Cloud Sync)
@@ -1183,13 +777,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       id: 'c-' + Date.now(),
       updatedAt: Date.now(),
     };
-    setCLessons((prev) => {
-      const next = [...prev, newLesson];
-      try {
-        localStorage.setItem(`${PREFIX}clessons`, JSON.stringify(next));
-      } catch {}
-      return next;
-    });
+    setCLessons((prev) => [...prev, newLesson].sort((a, b) => (a.dayNumber || 0) - (b.dayNumber || 0)));
     setCloudSyncStatus('syncing');
     saveItemToFirestore('cLessons', newLesson).then(markSyncSuccess).catch(() => {});
   };
@@ -1197,10 +785,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const updateCLesson = (id: string, updated: Partial<CLesson>) => {
     setCLessons((prev) => {
       const nowTs = Date.now();
-      const next = prev.map((l) => (l.id === id ? { ...l, ...updated, updatedAt: nowTs } : l));
-      try {
-        localStorage.setItem(`${PREFIX}clessons`, JSON.stringify(next));
-      } catch {}
+      const next = prev
+        .map((l) => (l.id === id ? { ...l, ...updated, updatedAt: nowTs } : l))
+        .sort((a, b) => (a.dayNumber || 0) - (b.dayNumber || 0));
       const target = next.find((l) => l.id === id);
       if (target) {
         setCloudSyncStatus('syncing');
@@ -1211,17 +798,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const deleteCLesson = (id: string) => {
-    markItemAsDeleted('cLessons', id);
-    setCLessons((prev) => {
-      const next = prev.filter((l) => l.id !== id);
-      try {
-        localStorage.setItem(`${PREFIX}clessons`, JSON.stringify(next));
-      } catch {}
-      return next;
-    });
+    setCLessons((prev) => prev.filter((l) => l.id !== id));
     setCloudSyncStatus('syncing');
     deleteItemFromFirestore('cLessons', id).then(markSyncSuccess).catch(() => {});
-    saveDocToFirestore('appConfig', 'deletedRecords', { [id]: Date.now() }).catch(() => {});
   };
 
   // Resources CRUD (Automatic Cloud Sync)
@@ -1232,13 +811,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       downloadsCount: 0,
       updatedAt: Date.now(),
     };
-    setResources((prev) => {
-      const next = [newResource, ...prev];
-      try {
-        localStorage.setItem(`${PREFIX}resources`, JSON.stringify(next));
-      } catch {}
-      return next;
-    });
+    setResources((prev) => [newResource, ...prev]);
     setCloudSyncStatus('syncing');
     saveItemToFirestore('resources', newResource).then(markSyncSuccess).catch(() => {});
   };
@@ -1247,9 +820,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setResources((prev) => {
       const nowTs = Date.now();
       const next = prev.map((r) => (r.id === id ? { ...r, ...updated, updatedAt: nowTs } : r));
-      try {
-        localStorage.setItem(`${PREFIX}resources`, JSON.stringify(next));
-      } catch {}
       const target = next.find((r) => r.id === id);
       if (target) {
         setCloudSyncStatus('syncing');
@@ -1260,17 +830,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const deleteResource = (id: string) => {
-    markItemAsDeleted('resources', id);
-    setResources((prev) => {
-      const next = prev.filter((r) => r.id !== id);
-      try {
-        localStorage.setItem(`${PREFIX}resources`, JSON.stringify(next));
-      } catch {}
-      return next;
-    });
+    setResources((prev) => prev.filter((r) => r.id !== id));
     setCloudSyncStatus('syncing');
     deleteItemFromFirestore('resources', id).then(markSyncSuccess).catch(() => {});
-    saveDocToFirestore('appConfig', 'deletedRecords', { [id]: Date.now() }).catch(() => {});
   };
 
   // Arcade Config (Automatic Cloud Sync)

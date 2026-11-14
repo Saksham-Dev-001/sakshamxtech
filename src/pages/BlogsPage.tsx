@@ -40,7 +40,7 @@ const CATEGORY_FALLBACK_IMAGES: Record<string, string> = {
 };
 
 export const BlogsPage: React.FC<BlogsPageProps> = ({ navigate }) => {
-  const { blogs, addBlog, updateBlog, deleteBlog, trackEvent, siteSettings } = useApp();
+  const { blogs, addBlog, updateBlog, deleteBlog, trackEvent, siteSettings, isFirebaseHydrated } = useApp();
   const { isAdmin } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
@@ -393,8 +393,22 @@ export const BlogsPage: React.FC<BlogsPageProps> = ({ navigate }) => {
         </div>
       )}
 
+      {/* LOADING SKELETON WHILE HYDRATING FROM FIRESTORE */}
+      {!isFirebaseHydrated && blogs.length === 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse py-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 space-y-4">
+              <div className="h-44 bg-slate-200 dark:bg-slate-800 rounded-2xl w-full"></div>
+              <div className="h-5 bg-slate-200 dark:bg-slate-800 rounded w-3/4"></div>
+              <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-full"></div>
+              <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-1/2"></div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* EMPTY SEARCH / FILTER STATE */}
-      {filteredBlogs.length === 0 && (
+      {isFirebaseHydrated && filteredBlogs.length === 0 && (
         <div className="py-20 text-center space-y-4 max-w-md mx-auto">
           <div className="w-16 h-16 rounded-3xl bg-blue-500/10 text-blue-600 dark:text-blue-400 mx-auto flex items-center justify-center">
             <Compass className="w-8 h-8" />

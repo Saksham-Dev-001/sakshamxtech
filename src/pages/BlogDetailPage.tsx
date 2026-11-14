@@ -35,7 +35,7 @@ interface BlogDetailPageProps {
 }
 
 export const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ slug, navigate }) => {
-  const { blogs, updateBlog, deleteBlog, isBookmarked, toggleBookmark, trackEvent, siteSettings } = useApp();
+  const { blogs, updateBlog, deleteBlog, isBookmarked, toggleBookmark, trackEvent, siteSettings, isFirebaseHydrated } = useApp();
   const { isAdmin } = useAuth();
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedDescLink, setCopiedDescLink] = useState(false);
@@ -44,7 +44,7 @@ export const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ slug, navigate }
   const [readingProgress, setReadingProgress] = useState(0);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
 
-  const blog = blogs.find((b) => b.slug === slug) || blogs[0];
+  const blog = blogs.find((b) => b.slug === slug);
 
   // Reset scroll and video player state when article slug changes
   useEffect(() => {
@@ -66,12 +66,27 @@ export const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ slug, navigate }
   }, []);
 
   if (!blog) {
+    if (!isFirebaseHydrated) {
+      return (
+        <div className="py-12 max-w-4xl mx-auto px-4 space-y-6 animate-pulse">
+          <div className="h-6 w-32 bg-slate-200 dark:bg-slate-800 rounded-lg"></div>
+          <div className="h-10 w-3/4 bg-slate-200 dark:bg-slate-800 rounded-xl"></div>
+          <div className="h-5 w-1/2 bg-slate-200 dark:bg-slate-800 rounded-lg"></div>
+          <div className="h-80 w-full bg-slate-200 dark:bg-slate-800 rounded-3xl"></div>
+          <div className="space-y-3 pt-4">
+            <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-full"></div>
+            <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-5/6"></div>
+            <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-4/6"></div>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="py-20 text-center text-slate-400">
         <p>Blog post not found.</p>
         <button
           onClick={() => navigate('/blogs')}
-          className="mt-4 px-4 py-2 bg-indigo-600 text-white font-bold rounded-lg text-xs"
+          className="mt-4 px-4 py-2 bg-indigo-600 text-white font-bold rounded-lg text-xs cursor-pointer"
         >
           Return to Blogs
         </button>

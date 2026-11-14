@@ -27,21 +27,30 @@ interface ArcadeDetailPageProps {
 }
 
 export const ArcadeDetailPage: React.FC<ArcadeDetailPageProps> = ({ slug, navigate }) => {
-  const { arcadeSolutions, updateArcadeSolution, isBookmarked, toggleBookmark, trackEvent } = useApp();
+  const { arcadeSolutions, updateArcadeSolution, isBookmarked, toggleBookmark, trackEvent, isFirebaseHydrated } = useApp();
   const { isAdmin } = useAuth();
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [copiedLink, setCopiedLink] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
 
-  const solution = (arcadeSolutions || []).find((s) => s.slug === slug) || (arcadeSolutions || [])[0];
+  const solution = (arcadeSolutions || []).find((s) => s.slug === slug);
 
   if (!solution) {
+    if (!isFirebaseHydrated) {
+      return (
+        <div className="py-12 max-w-4xl mx-auto px-4 space-y-6 animate-pulse">
+          <div className="h-6 w-32 bg-slate-200 dark:bg-slate-800 rounded-lg"></div>
+          <div className="h-10 w-3/4 bg-slate-200 dark:bg-slate-800 rounded-xl"></div>
+          <div className="h-40 w-full bg-slate-200 dark:bg-slate-800 rounded-2xl"></div>
+        </div>
+      );
+    }
     return (
       <div className="py-20 text-center text-slate-400">
         <p>Solution not found.</p>
         <button
           onClick={() => navigate('/google-arcade')}
-          className="mt-4 px-4 py-2 bg-cyan-500 text-slate-950 font-bold rounded-lg text-xs"
+          className="mt-4 px-4 py-2 bg-cyan-500 text-slate-950 font-bold rounded-lg text-xs cursor-pointer"
         >
           Return to Arcade Hub
         </button>

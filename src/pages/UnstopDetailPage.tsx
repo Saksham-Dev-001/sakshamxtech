@@ -29,7 +29,7 @@ interface UnstopDetailPageProps {
 }
 
 export const UnstopDetailPage: React.FC<UnstopDetailPageProps> = ({ slug, navigate }) => {
-  const { unstopProblems, updateUnstopProblem, isBookmarked, toggleBookmark, trackEvent } = useApp();
+  const { unstopProblems, updateUnstopProblem, isBookmarked, toggleBookmark, trackEvent, isFirebaseHydrated } = useApp();
   const { isAdmin } = useAuth();
   const [selectedLang, setSelectedLang] = useState<'c' | 'cpp' | 'java' | 'python' | 'javascript'>('c');
   const [copied, setCopied] = useState(false);
@@ -37,9 +37,18 @@ export const UnstopDetailPage: React.FC<UnstopDetailPageProps> = ({ slug, naviga
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
 
-  const problem = (unstopProblems || []).find((p) => p.slug === slug) || (unstopProblems || [])[0];
+  const problem = (unstopProblems || []).find((p) => p.slug === slug);
 
   if (!problem) {
+    if (!isFirebaseHydrated) {
+      return (
+        <div className="py-12 max-w-4xl mx-auto px-4 space-y-6 animate-pulse">
+          <div className="h-6 w-32 bg-slate-200 dark:bg-slate-800 rounded-lg"></div>
+          <div className="h-10 w-3/4 bg-slate-200 dark:bg-slate-800 rounded-xl"></div>
+          <div className="h-40 w-full bg-slate-200 dark:bg-slate-800 rounded-2xl"></div>
+        </div>
+      );
+    }
     return (
       <div className="py-20 text-center text-slate-400">
         <p>Problem not found.</p>

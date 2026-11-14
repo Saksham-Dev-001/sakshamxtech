@@ -27,7 +27,7 @@ interface CLessonPageProps {
 }
 
 export const CLessonPage: React.FC<CLessonPageProps> = ({ slug, navigate }) => {
-  const { cLessons, updateCLesson, trackEvent } = useApp();
+  const { cLessons, updateCLesson, trackEvent, isFirebaseHydrated } = useApp();
   const { isAdmin } = useAuth();
   const [copied, setCopied] = useState(false);
   const [selectedAnswers, setSelectedAnswers] = useState<{ [qIndex: number]: number }>({});
@@ -35,7 +35,31 @@ export const CLessonPage: React.FC<CLessonPageProps> = ({ slug, navigate }) => {
   const [isEditOpen, setIsEditOpen] = useState(false);
 
   const sortedLessons = [...cLessons].sort((a, b) => (a.dayNumber || 0) - (b.dayNumber || 0));
-  const lesson = sortedLessons.find((l) => l.slug === slug) || sortedLessons[0];
+  const lesson = sortedLessons.find((l) => l.slug === slug);
+
+  if (!lesson) {
+    if (!isFirebaseHydrated) {
+      return (
+        <div className="py-12 max-w-4xl mx-auto px-4 space-y-6 animate-pulse">
+          <div className="h-6 w-32 bg-slate-200 dark:bg-slate-800 rounded-lg"></div>
+          <div className="h-10 w-3/4 bg-slate-200 dark:bg-slate-800 rounded-xl"></div>
+          <div className="h-64 w-full bg-slate-200 dark:bg-slate-800 rounded-2xl"></div>
+        </div>
+      );
+    }
+    return (
+      <div className="py-20 text-center text-slate-400">
+        <p>Lesson not found.</p>
+        <button
+          onClick={() => navigate('/c-academy')}
+          className="mt-4 px-4 py-2 bg-blue-600 text-white font-bold rounded-lg text-xs cursor-pointer"
+        >
+          Return to C Academy
+        </button>
+      </div>
+    );
+  }
+
   const currentIndex = sortedLessons.findIndex((l) => l.slug === lesson.slug);
   const prevLesson = currentIndex > 0 ? sortedLessons[currentIndex - 1] : null;
   const nextLesson = currentIndex < sortedLessons.length - 1 ? sortedLessons[currentIndex + 1] : null;
