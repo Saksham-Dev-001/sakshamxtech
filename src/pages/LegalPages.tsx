@@ -42,19 +42,63 @@ export const LegalPage: React.FC<LegalPageProps> = ({ type, navigate }) => {
           {isPrivacy ? (
             <>
               <p>
-                At <strong>SakshamXTech</strong>, your privacy and security are paramount. This policy explains what information we collect and how it is protected.
+                At <strong>SakshamXTech</strong>, your privacy and digital security are paramount. This policy explains what information we collect, how third-party advertising partners operate, and how your personal data is protected when visiting our educational platform.
               </p>
+
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">1. Information We Do Not Collect</h3>
               <p>
-                We do NOT collect sensitive credentials, private passwords, or credit card numbers. All public educational features (Arcade solutions, Unstop POTD, C Academy, Tools) are completely free and do not require user account registration.
+                We do NOT collect sensitive personal credentials, private passwords, or credit card numbers. All core student learning features (Google Cloud Arcade walkthroughs, Unstop POTD solutions, C Programming Academy, and Developer Tools) are open access without requiring mandatory account registration.
               </p>
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white">2. Browser Local Storage</h3>
+
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">2. Google AdSense & Third-Party Advertising Cookies</h3>
               <p>
-                Features like the Arcade Progress Tracker and code in the C Playground are stored directly inside your browser's private local storage. This data never leaves your device unless you choose to share your progress.
+                We use Google AdSense and authorized third-party ad networks to serve advertisements when you visit our website. These companies may use cookies, web beacons, and similar technologies to measure advertising effectiveness and provide personalized advertisements about goods and services of interest to you.
               </p>
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white">3. Third-Party Links</h3>
+              <ul className="list-disc pl-5 space-y-1.5 text-xs text-slate-600 dark:text-slate-300">
+                <li>
+                  <strong>Google as a Third-Party Vendor:</strong> Google uses cookies to serve ads on SakshamXTech based on a user's prior visits to this website or other websites across the Internet.
+                </li>
+                <li>
+                  <strong>Advertising Cookies:</strong> Google's use of advertising cookies enables it and its partners to serve ads based on your visit to our platform and/or other sites on the Internet.
+                </li>
+                <li>
+                  <strong>Opt-Out of Personalized Ads:</strong> Users may opt out of personalized advertising at any time by visiting{' '}
+                  <a
+                    href="https://www.google.com/settings/ads"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-blue-600 dark:text-cyan-400 underline font-semibold"
+                  >
+                    Google Ads Settings
+                  </a>{' '}
+                  or by visiting{' '}
+                  <a
+                    href="https://www.aboutads.info/choices/"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-blue-600 dark:text-cyan-400 underline font-semibold"
+                  >
+                    www.aboutads.info
+                  </a>.
+                </li>
+              </ul>
+
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">3. Browser Local Storage</h3>
               <p>
-                Our platform contains verified links to external programs including Google Cloud Skills Boost, Unstop, GitHub, and corporate career portals. We encourage you to review their respective privacy statements when applying.
+                Interactive client utilities such as the Arcade Points Calculator, Progress Checklists, and code snippets in the C Playground are stored directly inside your browser's private local storage. This data never leaves your device unless you choose to export it manually.
+              </p>
+
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">4. External Links & Affiliations</h3>
+              <p>
+                Our platform references verified opportunities from external vendors including Google Cloud Skills Boost, Unstop, GitHub, and enterprise career portals. SakshamXTech is not responsible for the privacy practices or content of third-party platforms.
+              </p>
+
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">5. Contact Information</h3>
+              <p>
+                For questions regarding this Privacy Policy, please contact our team via{' '}
+                <button onClick={() => navigate('/contact')} className="text-blue-600 dark:text-cyan-400 underline font-semibold">
+                  Contact & Support
+                </button>.
               </p>
             </>
           ) : (
@@ -70,7 +114,11 @@ export const LegalPage: React.FC<LegalPageProps> = ({ type, navigate }) => {
               <p>
                 Merchandise opportunities, prizes, and swag distributions are managed independently by official vendors (Google LLC, Microsoft, GitHub). SakshamXTech does not manufacture or guarantee physical delivery of vendor rewards.
               </p>
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white">3. Code Playground Usage</h3>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">3. Non-Affiliation Disclaimer</h3>
+              <p>
+                SakshamXTech is an independent educational initiative founded by Saksham Sharma. Google Cloud, Google Cloud Arcade, Unstop, and other company names or logos mentioned are trademarks or registered trademarks of their respective holders. Their mention does not imply endorsement or official affiliation.
+              </p>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">4. Code Playground Usage</h3>
               <p>
                 The online C compiler is provided for academic exercises and student algorithmic testing. Automated scraping, malicious payload generation, or denial-of-service attempts against the compiler runtime are strictly prohibited.
               </p>

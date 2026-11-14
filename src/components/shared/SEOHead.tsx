@@ -103,6 +103,30 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
       setMeta('name', 'msvalidate.01', siteSettings.seoConfig.bingSiteVerification);
     }
 
+    // 4b. Google AdSense Site Ownership & Verification Tag
+    if (siteSettings?.adsConfig?.adClient) {
+      const cleanClient = siteSettings.adsConfig.adClient.trim();
+      const pubId = cleanClient.startsWith('ca-pub-') ? cleanClient : `ca-${cleanClient}`;
+      if (pubId.length >= 15 && !pubId.includes('0000000000000000')) {
+        setMeta('name', 'google-adsense-account', pubId);
+
+        // Also inject Google AdSense review script if not yet loaded
+        const scriptId = 'google-adsense-site-script';
+        if (!document.getElementById(scriptId)) {
+          try {
+            const script = document.createElement('script');
+            script.id = scriptId;
+            script.async = true;
+            script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${pubId}`;
+            script.crossOrigin = 'anonymous';
+            document.head.appendChild(script);
+          } catch (e) {
+            console.warn('AdSense script injection warning:', e);
+          }
+        }
+      }
+    }
+
     // 5. Open Graph Meta Tags (WhatsApp, Telegram, LinkedIn, Discord, Facebook)
     const defaultImage = siteSettings?.seoConfig?.ogDefaultImage || `${siteOrigin}/assets/branding/saksham_banner.png`;
     const resolvedImage = image

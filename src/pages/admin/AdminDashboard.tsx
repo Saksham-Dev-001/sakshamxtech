@@ -3164,6 +3164,55 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigate }) => {
                     </p>
                   </div>
 
+                  {/* 4-Step AdSense Application Guide */}
+                  <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-50/70 via-indigo-50/60 to-purple-50/70 dark:from-slate-950 dark:via-blue-950/20 dark:to-slate-950 border border-blue-200/60 dark:border-blue-900/40 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                        <Sparkles className="w-4 h-4 text-amber-500" />
+                        <span>4-Step Official AdSense Application Checklist</span>
+                      </span>
+                      <a
+                        href="https://adsense.google.com/start/"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[11px] text-blue-600 dark:text-cyan-400 font-bold hover:underline flex items-center gap-1"
+                      >
+                        <span>Open AdSense Portal</span>
+                        <ExternalLink className="w-2.5 h-2.5" />
+                      </a>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 text-[11px]">
+                      <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 space-y-1">
+                        <span className="font-bold text-blue-600 dark:text-cyan-400 block">1. Add Site</span>
+                        <p className="text-slate-600 dark:text-slate-400">
+                          Sign in to Google AdSense &gt; Sites &gt; New Site &gt; Enter your URL <code className="text-[10px] text-slate-800 dark:text-slate-200">sakshamxtech.vercel.app</code>.
+                        </p>
+                      </div>
+
+                      <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 space-y-1">
+                        <span className="font-bold text-indigo-600 dark:text-indigo-400 block">2. Copy Pub ID</span>
+                        <p className="text-slate-600 dark:text-slate-400">
+                          Copy your Publisher ID (starts with <code className="text-[10px] text-slate-800 dark:text-slate-200">ca-pub-</code>) and paste it in the box above.
+                        </p>
+                      </div>
+
+                      <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 space-y-1">
+                        <span className="font-bold text-purple-600 dark:text-purple-400 block">3. Generate ads.txt</span>
+                        <p className="text-slate-600 dark:text-slate-400">
+                          Click <b>Generate ads.txt</b> and press <b>Save SEO & Ads Settings</b> below.
+                        </p>
+                      </div>
+
+                      <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 space-y-1">
+                        <span className="font-bold text-emerald-600 dark:text-emerald-400 block">4. Request Review</span>
+                        <p className="text-slate-600 dark:text-slate-400">
+                          Back on AdSense, tick <i>"I've placed the code / ads.txt"</i> and click <b>Request Review</b>!
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Ad Placements & Slot IDs */}
                   <div className="space-y-3">
                     <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">
