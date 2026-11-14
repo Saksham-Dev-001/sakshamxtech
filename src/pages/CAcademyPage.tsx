@@ -18,6 +18,7 @@ import {
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { SEOHead } from '../components/shared/SEOHead';
+import { AdBanner } from '../components/shared/AdBanner';
 import { CLessonEditorModal } from './admin/ContentEditorModals';
 import { CLesson } from '../types';
 
@@ -84,6 +85,13 @@ export const CAcademyPage: React.FC<CAcademyPageProps> = ({ navigate }) => {
       <SEOHead
         title="C Programming Academy | Master Systems Programming | SakshamXTech"
         description="Structured 30-day comprehensive C programming course with hands-on exercises, memory layout deep-dives, video lectures, and interactive coding playground."
+        type="course"
+        canonicalPath="/c-academy"
+        keywords={['C Programming Course', 'Learn C Language', 'Pointers in C', 'Data Structures in C', 'GCC Compilation', 'Saksham Sharma']}
+        breadcrumbs={[
+          { name: 'Home', path: '/' },
+          { name: 'C Academy', path: '/c-academy' },
+        ]}
       />
 
       {/* Breadcrumb matching Mockup */}
@@ -92,6 +100,9 @@ export const CAcademyPage: React.FC<CAcademyPageProps> = ({ navigate }) => {
         <ChevronRight className="w-3.5 h-3.5" />
         <span className="text-slate-900 dark:text-white font-bold">C Academy</span>
       </div>
+
+      {/* Header Ad Slot */}
+      <AdBanner placement="header" className="mb-6" />
 
       {/* Hero Header Banner matching Mockup Middle-Right */}
       <div className="relative mb-10 p-6 sm:p-10 rounded-3xl bg-gradient-to-r from-blue-50/80 via-white to-sky-50/80 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8">

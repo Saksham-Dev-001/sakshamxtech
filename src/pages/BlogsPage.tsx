@@ -21,6 +21,7 @@ import {
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { SEOHead } from '../components/shared/SEOHead';
+import { AdBanner } from '../components/shared/AdBanner';
 import { formatRealDate, isBlogPostLive } from '../utils/realTime';
 import { BlogEditorModal, extractYouTubeVideoId } from './admin/ContentEditorModals';
 import { BlogPost } from '../types';
@@ -158,6 +159,11 @@ export const BlogsPage: React.FC<BlogsPageProps> = ({ navigate }) => {
       <SEOHead
         title="Technical Blogs & Official Guides | SakshamXTech"
         description="In-depth tutorials, Google Cloud Arcade blueprints, C programming deep dives, and verified registration links from Saksham Sharma."
+        canonicalPath="/blogs"
+        keywords={['Google Cloud Blogs', 'Tech Articles', 'C Programming Tutorials', 'Unstop POTD Guides', 'Saksham Sharma Blogs']}
+        breadcrumbs={[
+          { name: 'Tech Blogs', path: '/blogs' }
+        ]}
       />
 
       {/* Breadcrumb */}
@@ -248,6 +254,9 @@ export const BlogsPage: React.FC<BlogsPageProps> = ({ navigate }) => {
           );
         })}
       </div>
+
+      {/* Google AdSense Leaderboard Placement */}
+      <AdBanner placement="header" />
 
       {/* FEATURED HERO SPOTLIGHT ARTICLE (When Viewing All) */}
       {featuredArticle && (

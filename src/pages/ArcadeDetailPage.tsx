@@ -18,6 +18,7 @@ import {
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { SEOHead } from '../components/shared/SEOHead';
+import { AdBanner } from '../components/shared/AdBanner';
 import { ArcadeEditorModal } from './admin/ContentEditorModals';
 
 interface ArcadeDetailPageProps {
@@ -98,7 +99,13 @@ export const ArcadeDetailPage: React.FC<ArcadeDetailPageProps> = ({ slug, naviga
       <SEOHead
         title={`${solution.title} (${solution.labCode}) Solution | SakshamXTech`}
         description={`Step-by-step verified solution and commands for Google Cloud Arcade lab ${solution.labCode}: ${solution.title}.`}
+        canonicalPath={`/arcade/${solution.slug}`}
         image={solution.youtubeVideoId ? `https://i.ytimg.com/vi/${solution.youtubeVideoId}/hqdefault.jpg` : undefined}
+        type="techArticle"
+        breadcrumbs={[
+          { name: 'Google Cloud Arcade', path: '/google-arcade' },
+          { name: `${solution.labCode}: ${solution.title}`, path: `/arcade/${solution.slug}` }
+        ]}
       />
 
       {/* Back button & Breadcrumb */}
@@ -206,6 +213,9 @@ export const ArcadeDetailPage: React.FC<ArcadeDetailPageProps> = ({ slug, naviga
           </ul>
         </div>
       )}
+
+      {/* In-Article Google AdSense Banner */}
+      <AdBanner placement="inArticle" />
 
       {/* Step-by-Step Execution Guide */}
       <div className="space-y-6 mb-12">

@@ -43,7 +43,9 @@ import {
   CheckCircle2,
   Activity,
   Flame,
-  Bell
+  Bell,
+  Globe,
+  FileCode
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useApp } from '../../context/AppContext';
@@ -250,6 +252,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigate }) => {
     setSavedSuccess(msg);
     setTimeout(() => setSavedSuccess(null), 3500);
   };
+
+  // Sync settingsForm whenever siteSettings updates from Firestore
+  useEffect(() => {
+    if (siteSettings) {
+      setSettingsForm(siteSettings);
+    }
+  }, [siteSettings]);
+
+  const [copiedAdsTxt, setCopiedAdsTxt] = useState(false);
+  const [copiedSitemapUrl, setCopiedSitemapUrl] = useState(false);
 
   // Firebase Permissions & Sync Diagnostic State
   const [rulesCopied, setRulesCopied] = useState(false);
@@ -3014,93 +3026,592 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigate }) => {
             </div>
           )}
 
-          {/* TAB 12: SEO & MONETIZATION */}
+          {/* TAB 12: SEO & GOOGLE ADSENSE MASTER STUDIO */}
           {activeModule === 'seo-ads' && (
-            <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
-              <div className="pb-4 border-b border-slate-100 dark:border-slate-800">
-                <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
-                  <DollarSign className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                  <span>Google AdSense & Monetization Placements</span>
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  Configure sponsored banner placements across homepage and articles without compromising student experience.
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                <label className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={settingsForm.adsConfig.enabled}
-                    onChange={(e) =>
-                      setSettingsForm({
-                        ...settingsForm,
-                        adsConfig: { ...settingsForm.adsConfig, enabled: e.target.checked },
-                      })
-                    }
-                    className="accent-emerald-600 w-4 h-4"
-                  />
+            <div className="space-y-8">
+              {/* SECTION 1: GOOGLE ADSENSE MONETIZATION HUB */}
+              <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+                <div className="pb-4 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
-                    <span className="text-xs font-bold text-slate-900 dark:text-white block">Enable Monetization Banners</span>
-                    <span className="text-[11px] text-slate-500 dark:text-slate-400">Toggles global display of educational affiliate & sponsor cards.</span>
+                    <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+                      <DollarSign className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                      <span>Google AdSense Monetization Hub</span>
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                      Configure your official Google AdSense Publisher ID, responsive placements, ads.txt authorized sellers, and preview mode.
+                    </p>
                   </div>
-                </label>
+                  <div className="flex items-center gap-2">
+                    <span className={`px-3 py-1 rounded-full text-[11px] font-bold border ${
+                      settingsForm.adsConfig?.enabled
+                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                        : 'bg-slate-500/10 text-slate-500 border-slate-500/20'
+                    }`}>
+                      {settingsForm.adsConfig?.enabled ? '● AdSense Active' : '○ AdSense Disabled'}
+                    </span>
+                    {settingsForm.adsConfig?.testMode && (
+                      <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                        ⚡ Preview / Test Mode
+                      </span>
+                    )}
+                  </div>
+                </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-                  <label className="p-3.5 rounded-2xl bg-slate-50/70 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 cursor-pointer">
+                {/* Master Switches */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <label className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 cursor-pointer">
                     <input
                       type="checkbox"
-                      checked={settingsForm.adsConfig.headerBanner}
+                      checked={!!settingsForm.adsConfig?.enabled}
                       onChange={(e) =>
                         setSettingsForm({
                           ...settingsForm,
-                          adsConfig: { ...settingsForm.adsConfig, headerBanner: e.target.checked },
+                          adsConfig: { ...settingsForm.adsConfig, enabled: e.target.checked },
                         })
                       }
-                      className="accent-blue-600"
+                      className="accent-emerald-600 w-4 h-4 cursor-pointer"
                     />
-                    <span>Homepage Leaderboard</span>
+                    <div>
+                      <span className="text-xs font-bold text-slate-900 dark:text-white block">Enable Google AdSense</span>
+                      <span className="text-[11px] text-slate-500 dark:text-slate-400">Master switch for serving AdSense across the site.</span>
+                    </div>
                   </label>
 
-                  <label className="p-3.5 rounded-2xl bg-slate-50/70 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 cursor-pointer">
+                  <label className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 cursor-pointer">
                     <input
                       type="checkbox"
-                      checked={settingsForm.adsConfig.inArticleBanner}
+                      checked={!!settingsForm.adsConfig?.testMode}
                       onChange={(e) =>
                         setSettingsForm({
                           ...settingsForm,
-                          adsConfig: { ...settingsForm.adsConfig, inArticleBanner: e.target.checked },
+                          adsConfig: { ...settingsForm.adsConfig, testMode: e.target.checked },
                         })
                       }
-                      className="accent-indigo-600"
+                      className="accent-amber-500 w-4 h-4 cursor-pointer"
                     />
-                    <span>In-Article Banner</span>
+                    <div>
+                      <span className="text-xs font-bold text-slate-900 dark:text-white block">Review / Test Mode</span>
+                      <span className="text-[11px] text-slate-500 dark:text-slate-400">Renders labeled placeholders to preview placements safely.</span>
+                    </div>
                   </label>
 
-                  <label className="p-3.5 rounded-2xl bg-slate-50/70 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 cursor-pointer">
+                  <label className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 cursor-pointer">
                     <input
                       type="checkbox"
-                      checked={settingsForm.adsConfig.sidebarBanner}
+                      checked={!!settingsForm.adsConfig?.autoAds}
                       onChange={(e) =>
                         setSettingsForm({
                           ...settingsForm,
-                          adsConfig: { ...settingsForm.adsConfig, sidebarBanner: e.target.checked },
+                          adsConfig: { ...settingsForm.adsConfig, autoAds: e.target.checked },
                         })
                       }
-                      className="accent-purple-600"
+                      className="accent-blue-600 w-4 h-4 cursor-pointer"
                     />
-                    <span>Sidebar Placement</span>
+                    <div>
+                      <span className="text-xs font-bold text-slate-900 dark:text-white block">Google Auto Ads</span>
+                      <span className="text-[11px] text-slate-500 dark:text-slate-400">Allows Google AI to place responsive auto ads.</span>
+                    </div>
                   </label>
+                </div>
+
+                {/* Publisher ID & Account Details */}
+                <div className="space-y-4 pt-2">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1">
+                      AdSense Publisher Client ID (`ca-pub-XXXXXXXXXXXXXXXX`) *
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="e.g. ca-pub-1234567890123456"
+                        value={settingsForm.adsConfig?.adClient || ''}
+                        onChange={(e) => {
+                          const val = e.target.value.trim();
+                          setSettingsForm({
+                            ...settingsForm,
+                            adsConfig: { ...settingsForm.adsConfig, adClient: val },
+                          });
+                        }}
+                        className="flex-1 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-slate-200 font-mono focus:ring-2 focus:ring-blue-500 outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const client = (settingsForm.adsConfig?.adClient || '').trim();
+                          const rawId = client.replace(/^ca-pub-/, '').replace(/^pub-/, '');
+                          if (rawId) {
+                            const generated = `google.com, pub-${rawId}, DIRECT, f08c47fec0942fa0`;
+                            setSettingsForm({
+                              ...settingsForm,
+                              adsConfig: {
+                                ...settingsForm.adsConfig,
+                                adsTxtContent: generated,
+                              },
+                            });
+                            triggerSuccessAlert('ads.txt updated with your publisher ID!');
+                          } else {
+                            alert('Please enter your Publisher Client ID (e.g. ca-pub-1234567890123456) first.');
+                          }
+                        }}
+                        className="px-3.5 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                      >
+                        <Zap className="w-3.5 h-3.5 text-amber-500" />
+                        <span>Generate ads.txt</span>
+                      </button>
+                    </div>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                      Find this in your Google AdSense Dashboard under <b>Account &gt; Settings &gt; Account Information</b>.
+                    </p>
+                  </div>
+
+                  {/* Ad Placements & Slot IDs */}
+                  <div className="space-y-3">
+                    <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">
+                      Ad Placements & Slot IDs
+                    </label>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      {/* Header slot */}
+                      <div className="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 space-y-2">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={!!settingsForm.adsConfig?.headerBanner}
+                            onChange={(e) =>
+                              setSettingsForm({
+                                ...settingsForm,
+                                adsConfig: { ...settingsForm.adsConfig, headerBanner: e.target.checked },
+                              })
+                            }
+                            className="accent-blue-600"
+                          />
+                          <span className="text-xs font-bold text-slate-900 dark:text-white">Leaderboard / Header</span>
+                        </label>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                          Appears on Blogs list and C Academy top.
+                        </p>
+                        <input
+                          type="text"
+                          placeholder="Slot ID e.g. 1234567890"
+                          value={settingsForm.adsConfig?.headerSlotId || ''}
+                          onChange={(e) =>
+                            setSettingsForm({
+                              ...settingsForm,
+                              adsConfig: { ...settingsForm.adsConfig, headerSlotId: e.target.value.trim() },
+                            })
+                          }
+                          className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-200 font-mono focus:ring-1 focus:ring-blue-500 outline-none"
+                        />
+                      </div>
+
+                      {/* In-Article slot */}
+                      <div className="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 space-y-2">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={!!settingsForm.adsConfig?.inArticleBanner}
+                            onChange={(e) =>
+                              setSettingsForm({
+                                ...settingsForm,
+                                adsConfig: { ...settingsForm.adsConfig, inArticleBanner: e.target.checked },
+                              })
+                            }
+                            className="accent-indigo-600"
+                          />
+                          <span className="text-xs font-bold text-slate-900 dark:text-white">In-Article Content</span>
+                        </label>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                          Appears inside Blog posts, Arcade, and Unstop solutions.
+                        </p>
+                        <input
+                          type="text"
+                          placeholder="Slot ID e.g. 9876543210"
+                          value={settingsForm.adsConfig?.inArticleSlotId || ''}
+                          onChange={(e) =>
+                            setSettingsForm({
+                              ...settingsForm,
+                              adsConfig: { ...settingsForm.adsConfig, inArticleSlotId: e.target.value.trim() },
+                            })
+                          }
+                          className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-200 font-mono focus:ring-1 focus:ring-blue-500 outline-none"
+                        />
+                      </div>
+
+                      {/* Sidebar slot */}
+                      <div className="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 space-y-2">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={!!settingsForm.adsConfig?.sidebarBanner}
+                            onChange={(e) =>
+                              setSettingsForm({
+                                ...settingsForm,
+                                adsConfig: { ...settingsForm.adsConfig, sidebarBanner: e.target.checked },
+                              })
+                            }
+                            className="accent-purple-600"
+                          />
+                          <span className="text-xs font-bold text-slate-900 dark:text-white">Sidebar / Tools</span>
+                        </label>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                          Appears along calculators and side widgets.
+                        </p>
+                        <input
+                          type="text"
+                          placeholder="Slot ID e.g. 5544332211"
+                          value={settingsForm.adsConfig?.sidebarSlotId || ''}
+                          onChange={(e) =>
+                            setSettingsForm({
+                              ...settingsForm,
+                              adsConfig: { ...settingsForm.adsConfig, sidebarSlotId: e.target.value.trim() },
+                            })
+                          }
+                          className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-200 font-mono focus:ring-1 focus:ring-blue-500 outline-none"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Digital Authorized Sellers (ads.txt) */}
+                  <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 text-slate-300 space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <FileCode className="w-4 h-4 text-emerald-400" />
+                        <span className="text-xs font-bold text-white">Authorized Digital Sellers (ads.txt)</span>
+                        <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-bold">
+                          Live Endpoint
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const content = settingsForm.adsConfig?.adsTxtContent || 'google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0';
+                            navigator.clipboard.writeText(content);
+                            setCopiedAdsTxt(true);
+                            setTimeout(() => setCopiedAdsTxt(false), 2500);
+                          }}
+                          className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-white text-[11px] font-semibold rounded-lg flex items-center gap-1 transition-all"
+                        >
+                          {copiedAdsTxt ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                          <span>{copiedAdsTxt ? 'Copied!' : 'Copy'}</span>
+                        </button>
+                        <a
+                          href="/ads.txt"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="px-2.5 py-1 bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 text-[11px] font-semibold rounded-lg flex items-center gap-1 transition-all"
+                        >
+                          <span>Open /ads.txt</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </div>
+                    </div>
+
+                    <p className="text-[11px] text-slate-400">
+                      Google AdSense requires this file to verify authorized ad inventory. SakshamXTech serves this dynamically at{' '}
+                      <code className="text-cyan-400">/ads.txt</code> via Vercel serverless functions.
+                    </p>
+
+                    <textarea
+                      rows={2}
+                      value={settingsForm.adsConfig?.adsTxtContent || ''}
+                      onChange={(e) =>
+                        setSettingsForm({
+                          ...settingsForm,
+                          adsConfig: { ...settingsForm.adsConfig, adsTxtContent: e.target.value },
+                        })
+                      }
+                      placeholder="google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0"
+                      className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs font-mono text-emerald-400 focus:ring-1 focus:ring-emerald-500 outline-none leading-relaxed"
+                    />
+                  </div>
                 </div>
               </div>
 
-              <button
-                onClick={handleSaveSettings}
-                className="px-5 py-2.5 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-md flex items-center gap-1.5 transition-all cursor-pointer"
-              >
-                <Save className="w-4 h-4" />
-                <span>Save Ad Placements</span>
-              </button>
+              {/* SECTION 2: SEARCH ENGINE OPTIMIZATION (SEO) & WEBMASTER STUDIO */}
+              <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+                <div className="pb-4 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+                      <Globe className="w-5 h-5 text-blue-600 dark:text-cyan-400" />
+                      <span>Search Engine Optimization (SEO) & Webmaster Studio</span>
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                      Manage Google Search Console verification, dynamic XML sitemaps, robots.txt, metadata, and SERP rich snippets.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <a
+                      href="/sitemap.xml"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 border border-blue-200 dark:border-blue-800 flex items-center gap-1.5 hover:bg-blue-100 transition-all"
+                    >
+                      <span>Live Sitemap</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                    <a
+                      href="/robots.txt"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 flex items-center gap-1.5 hover:bg-slate-200 transition-all"
+                    >
+                      <span>Robots.txt</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                </div>
+
+                {/* Verification IDs */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                        Google Search Console Verification Token
+                      </label>
+                      <a
+                        href="https://search.google.com/search-console"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[11px] text-blue-600 dark:text-cyan-400 hover:underline flex items-center gap-1"
+                      >
+                        <span>Open Search Console</span>
+                        <ExternalLink className="w-2.5 h-2.5" />
+                      </a>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="e.g. google-site-verification=abc123xyz or token string"
+                      value={settingsForm.seoConfig?.googleSiteVerification || ''}
+                      onChange={(e) => {
+                        let val = e.target.value.trim();
+                        // Auto-extract content if user pastes the entire HTML meta tag
+                        const match = val.match(/content=["']([^"']+)["']/i);
+                        if (match && match[1]) {
+                          val = match[1];
+                        }
+                        setSettingsForm({
+                          ...settingsForm,
+                          seoConfig: {
+                            ...(settingsForm.seoConfig || {}),
+                            googleSiteVerification: val,
+                          },
+                        });
+                      }}
+                      className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-slate-200 font-mono focus:ring-2 focus:ring-blue-500 outline-none"
+                    />
+                    <p className="text-[10px] text-slate-400">
+                      In Search Console, choose <b>HTML tag</b> verification and paste the token or tag here.
+                    </p>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                        Bing Webmaster Tools Verification Token
+                      </label>
+                      <a
+                        href="https://www.bing.com/webmasters"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[11px] text-blue-600 dark:text-cyan-400 hover:underline flex items-center gap-1"
+                      >
+                        <span>Open Bing Webmasters</span>
+                        <ExternalLink className="w-2.5 h-2.5" />
+                      </a>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="e.g. MSValidate token string"
+                      value={settingsForm.seoConfig?.bingSiteVerification || ''}
+                      onChange={(e) => {
+                        let val = e.target.value.trim();
+                        const match = val.match(/content=["']([^"']+)["']/i);
+                        if (match && match[1]) {
+                          val = match[1];
+                        }
+                        setSettingsForm({
+                          ...settingsForm,
+                          seoConfig: {
+                            ...(settingsForm.seoConfig || {}),
+                            bingSiteVerification: val,
+                          },
+                        });
+                      }}
+                      className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-slate-200 font-mono focus:ring-2 focus:ring-blue-500 outline-none"
+                    />
+                    <p className="text-[10px] text-slate-400">
+                      Optional: Enables indexing and discovery in Microsoft Bing, Copilot, and Yahoo.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Social & Author Metadata */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                      Default Article Author
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Saksham Sharma"
+                      value={settingsForm.seoConfig?.authorName ?? 'Saksham Sharma'}
+                      onChange={(e) =>
+                        setSettingsForm({
+                          ...settingsForm,
+                          seoConfig: {
+                            ...(settingsForm.seoConfig || {}),
+                            authorName: e.target.value,
+                          },
+                        })
+                      }
+                      className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 outline-none"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                      Official Twitter/X Handle
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="@sakshamxtech"
+                      value={settingsForm.seoConfig?.twitterHandle ?? '@sakshamxtech'}
+                      onChange={(e) =>
+                        setSettingsForm({
+                          ...settingsForm,
+                          seoConfig: {
+                            ...(settingsForm.seoConfig || {}),
+                            twitterHandle: e.target.value,
+                          },
+                        })
+                      }
+                      className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 outline-none"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                      Default Open Graph Share Image
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="/assets/branding/og-preview.png"
+                      value={settingsForm.seoConfig?.ogDefaultImage || ''}
+                      onChange={(e) =>
+                        setSettingsForm({
+                          ...settingsForm,
+                          seoConfig: {
+                            ...(settingsForm.seoConfig || {}),
+                            ogDefaultImage: e.target.value.trim(),
+                          },
+                        })
+                      }
+                      className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-slate-200 font-mono focus:ring-2 focus:ring-blue-500 outline-none"
+                    />
+                  </div>
+                </div>
+
+                {/* Target Keywords */}
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">
+                    Global SEO Keywords (Comma separated)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Google Cloud Arcade 2026, Unstop POTD, C Programming Academy, Tech Swags, Saksham Sharma, DSA"
+                    value={(settingsForm.seoConfig?.defaultKeywords || []).join(', ')}
+                    onChange={(e) => {
+                      const tags = e.target.value
+                        .split(',')
+                        .map((s) => s.trim())
+                        .filter(Boolean);
+                      setSettingsForm({
+                        ...settingsForm,
+                        seoConfig: {
+                          ...(settingsForm.seoConfig || {}),
+                          defaultKeywords: tags,
+                        },
+                      });
+                    }}
+                    className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 outline-none"
+                  />
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {(settingsForm.seoConfig?.defaultKeywords || [
+                      'Google Cloud Arcade',
+                      'Unstop POTD',
+                      'C Academy',
+                      'Saksham Sharma',
+                      'Tech Swags',
+                      'Programming Tutorials'
+                    ]).map((kw, i) => (
+                      <span
+                        key={i}
+                        className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-cyan-300 border border-blue-200 dark:border-blue-800"
+                      >
+                        #{kw}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Google Search Result SERP Live Simulator */}
+                <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                      <Search className="w-3.5 h-3.5 text-blue-600 dark:text-cyan-400" />
+                      <span>Live Google SERP Simulator</span>
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-mono">Mobile & Desktop Preview</span>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm max-w-xl space-y-1">
+                    <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
+                      <div className="w-4 h-4 rounded-full bg-blue-600 text-[10px] font-black text-white flex items-center justify-center">
+                        S
+                      </div>
+                      <span className="font-semibold text-slate-900 dark:text-slate-300">SakshamXTech</span>
+                      <span>›</span>
+                      <span className="text-slate-500 dark:text-slate-400">blogs</span>
+                    </div>
+
+                    <h4 className="text-base sm:text-lg font-semibold text-blue-700 dark:text-blue-400 hover:underline cursor-pointer leading-snug">
+                      {settingsForm.brandName || 'SakshamXTech'} - Complete Tech & Cloud Roadmap | Google Cloud Arcade & C Academy
+                    </h4>
+
+                    <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed line-clamp-2 pt-0.5">
+                      {settingsForm.tagline || 'Master Google Cloud Arcade, solve daily Unstop challenges, and learn C programming from scratch.'} Curated by {settingsForm.creatorName || 'Saksham Sharma'}.
+                    </p>
+
+                    <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px] text-blue-600 dark:text-cyan-400">
+                      <span>• C Programming Academy</span>
+                      <span>• Google Cloud Arcade 2026</span>
+                      <span>• Unstop POTD Solutions</span>
+                      <span>• Free Tech Swags & Tools</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* SAVE ACTION BAR */}
+              <div className="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg">
+                <div>
+                  <h4 className="text-xs sm:text-sm font-bold">Ready to apply SEO & AdSense changes?</h4>
+                  <p className="text-[11px] text-blue-100">
+                    Updates are instantly synced to Cloud Firestore and served to all search engines and visitors.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleSaveSettings}
+                  className="px-6 py-2.5 bg-white text-blue-600 hover:bg-blue-50 font-black text-xs rounded-xl shadow-md flex items-center gap-2 transition-all active:scale-95 cursor-pointer shrink-0"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>Save SEO & Ads Settings</span>
+                </button>
+              </div>
             </div>
           )}
 

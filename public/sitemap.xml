@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+
+  <!-- Core Platform Pages -->
+  <url>
+    <loc>https://sakshamxtech.vercel.app/</loc>
+    <lastmod>2026-11-14</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://sakshamxtech.vercel.app/assets/branding/saksham_banner.png</image:loc>
+      <image:title>SakshamXTech - Code. Cloud. Grow.</image:title>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://sakshamxtech.vercel.app/google-arcade</loc>
+    <lastmod>2026-11-14</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
+    <image:image>
+      <image:loc>https://sakshamxtech.vercel.app/assets/branding/arcade_skill_badges.png</image:loc>
+      <image:title>Google Cloud Arcade 2026 Walkthroughs &amp; Points Calculator</image:title>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://sakshamxtech.vercel.app/unstop</loc>
+    <lastmod>2026-11-14</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
+    <image:image>
+      <image:loc>https://sakshamxtech.vercel.app/assets/branding/potd_day7.png</image:loc>
+      <image:title>Unstop POTD Daily Coding Challenge Solutions</image:title>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://sakshamxtech.vercel.app/blogs</loc>
+    <lastmod>2026-11-14</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
+  </url>
+
+  <url>
+    <loc>https://sakshamxtech.vercel.app/c-academy</loc>
+    <lastmod>2026-11-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+  </url>
+
+  <url>
+    <loc>https://sakshamxtech.vercel.app/opportunities</loc>
+    <lastmod>2026-11-14</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.90</priority>
+  </url>
+
+  <url>
+    <loc>https://sakshamxtech.vercel.app/tools</loc>
+    <lastmod>2026-11-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+
+  <url>
+    <loc>https://sakshamxtech.vercel.app/resources</loc>
+    <lastmod>2026-11-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+
+  <!-- Technical Articles & Editorial Guides -->
+  <url>
+    <loc>https://sakshamxtech.vercel.app/blogs/google-student-ambassador-2026-guide</loc>
+    <lastmod>2026-11-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://sakshamxtech.vercel.app/blogs/how-to-complete-getting-started-with-cloud</loc>
+    <lastmod>2026-11-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://sakshamxtech.vercel.app/blogs/c-programming-roadmap-for-beginners</loc>
+    <lastmod>2026-11-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://sakshamxtech.vercel.app/blogs/google-cloud-arcade-2026-strategy-guide</loc>
+    <lastmod>2026-11-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://sakshamxtech.vercel.app/blogs/c-programming-memory-management-deep-dive</loc>
+    <lastmod>2026-11-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://sakshamxtech.vercel.app/blogs/how-to-solve-daily-unstop-potd-consistently</loc>
+    <lastmod>2026-11-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- Google Cloud Arcade Solutions -->
+  <url>
+    <loc>https://sakshamxtech.vercel.app/arcade/implement-load-balancing-with-cloud-run</loc>
+    <lastmod>2026-11-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://sakshamxtech.vercel.app/arcade/deploy-a-containerized-application-on-gke</loc>
+    <lastmod>2026-11-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://sakshamxtech.vercel.app/arcade/build-and-deploy-a-serverless-app</loc>
+    <lastmod>2026-11-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+
+  <!-- Unstop POTD Solutions -->
+  <url>
+    <loc>https://sakshamxtech.vercel.app/unstop/subarray-sum-equals-k</loc>
+    <lastmod>2026-11-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+
+  <!-- 30-Day C Programming Academy Curriculum -->
+  <url><loc>https://sakshamxtech.vercel.app/c-academy/day-1</loc><lastmod>2026-11-14</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://sakshamxtech.vercel.app/c-academy/day-2</loc><lastmod>2026-11-14</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://sakshamxtech.vercel.app/c-academy/day-3</loc><lastmod>2026-11-14</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://sakshamxtech.vercel.app/c-academy/day-4</loc><lastmod>2026-11-14</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://sakshamxtech.vercel.app/c-academy/day-5</loc><lastmod>2026-11-14</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://sakshamxtech.vercel.app/c-academy/day-6</loc><lastmod>2026-11-14</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://sakshamxtech.vercel.app/c-academy/day-7</loc><lastmod>2026-11-14</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://sakshamxtech.vercel.app/c-academy/day-8</loc><lastmod>2026-11-14</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://sakshamxtech.vercel.app/c-academy/day-9</loc><lastmod>2026-11-14</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://sakshamxtech.vercel.app/c-academy/day-10</loc><lastmod>2026-11-14</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://sakshamxtech.vercel.app/c-academy/day-11</loc><lastmod>2026-11-14</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://sakshamxtech.vercel.app/c-academy/day-12</loc><lastmod>2026-11-14</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://sakshamxtech.vercel.app/c-academy/day-13</loc><lastmod>2026-11-14</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://sakshamxtech.vercel.app/c-academy/day-14</loc><lastmod>2026-11-14</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://sakshamxtech.vercel.app/c-academy/day-15</loc><lastmod>2026-11-14</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://sakshamxtech.vercel.app/c-academy/day-16</loc><lastmod>2026-11-14</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://sakshamxtech.vercel.app/c-academy/day-17</loc><lastmod>2026-11-14</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://sakshamxtech.vercel.app/c-academy/day-18</loc><lastmod>2026-11-14</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://sakshamxtech.vercel.app/c-academy/day-19</loc><lastmod>2026-11-14</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://sakshamxtech.vercel.app/c-academy/day-20</loc><lastmod>2026-11-14</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://sakshamxtech.vercel.app/c-academy/day-21</loc><lastmod>2026-11-14</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://sakshamxtech.vercel.app/c-academy/day-22</loc><lastmod>2026-11-14</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://sakshamxtech.vercel.app/c-academy/day-23</loc><lastmod>2026-11-14</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://sakshamxtech.vercel.app/c-academy/day-24</loc><lastmod>2026-11-14</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://sakshamxtech.vercel.app/c-academy/day-25</loc><lastmod>2026-11-14</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://sakshamxtech.vercel.app/c-academy/day-26</loc><lastmod>2026-11-14</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://sakshamxtech.vercel.app/c-academy/day-27</loc><lastmod>2026-11-14</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://sakshamxtech.vercel.app/c-academy/day-28</loc><lastmod>2026-11-14</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://sakshamxtech.vercel.app/c-academy/day-29</loc><lastmod>2026-11-14</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://sakshamxtech.vercel.app/c-academy/day-30</loc><lastmod>2026-11-14</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+</urlset>

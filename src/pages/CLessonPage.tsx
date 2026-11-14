@@ -17,6 +17,7 @@ import {
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { SEOHead } from '../components/shared/SEOHead';
+import { AdBanner } from '../components/shared/AdBanner';
 import { MarkdownArticleReader } from '../components/shared/MarkdownArticleReader';
 import { CLessonEditorModal } from './admin/ContentEditorModals';
 
@@ -60,6 +61,12 @@ export const CLessonPage: React.FC<CLessonPageProps> = ({ slug, navigate }) => {
       <SEOHead
         title={`Day ${lesson.dayNumber}: ${lesson.title} | C Academy SakshamXTech`}
         description={lesson.summary}
+        canonicalPath={`/c-academy/day-${lesson.dayNumber}`}
+        type="course"
+        breadcrumbs={[
+          { name: 'C Academy', path: '/c-academy' },
+          { name: `Day ${lesson.dayNumber}: ${lesson.title}`, path: `/c-academy/day-${lesson.dayNumber}` }
+        ]}
       />
 
       {/* Top Navigation */}
@@ -189,6 +196,9 @@ export const CLessonPage: React.FC<CLessonPageProps> = ({ slug, navigate }) => {
           </div>
         )}
       </div>
+
+      {/* In-Article Ad Banner */}
+      <AdBanner placement="inArticle" className="mb-8" />
 
       {/* Practice Questions Section */}
       {lesson.practiceQuestions && lesson.practiceQuestions.length > 0 && (

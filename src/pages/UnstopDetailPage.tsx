@@ -18,6 +18,7 @@ import {
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { SEOHead } from '../components/shared/SEOHead';
+import { AdBanner } from '../components/shared/AdBanner';
 import { formatFullDate, getRelativeTimeString } from '../utils/realTime';
 import { extractYouTubeVideoId } from '../services/youtubeService';
 import { UnstopEditorModal } from './admin/ContentEditorModals';
@@ -115,7 +116,13 @@ export const UnstopDetailPage: React.FC<UnstopDetailPageProps> = ({ slug, naviga
       <SEOHead
         title={`Unstop Day ${problem.dayNumber}: ${problem.title} Solution | SakshamXTech`}
         description={`Detailed solution and multi-language code (C, C++, Java, Python, JS) for Unstop POTD: ${problem.title}.`}
+        canonicalPath={`/unstop/${problem.slug || `day-${problem.dayNumber}`}`}
         image={cleanVideoId ? `https://i.ytimg.com/vi/${cleanVideoId}/hqdefault.jpg` : 'https://sakshamxtech.vercel.app/assets/branding/potd_day7.png'}
+        type="techArticle"
+        breadcrumbs={[
+          { name: 'Unstop POTD', path: '/unstop' },
+          { name: `Day ${problem.dayNumber}: ${problem.title}`, path: `/unstop/${problem.slug || `day-${problem.dayNumber}`}` }
+        ]}
       />
 
       {/* Navigation & Controls */}
@@ -277,6 +284,9 @@ export const UnstopDetailPage: React.FC<UnstopDetailPageProps> = ({ slug, naviga
           {problem.solutionExplanation}
         </p>
       </div>
+
+      {/* In-Article Google AdSense Banner */}
+      <AdBanner placement="inArticle" />
 
       {/* Multi-Language Code Editor Box */}
       <div className="glass-card rounded-2xl border border-slate-800 overflow-hidden mb-12 shadow-2xl">

@@ -243,6 +243,20 @@ export interface SiteSettings {
     sidebarBanner: boolean;
     inArticleBanner: boolean;
     adClient: string;
+    autoAds?: boolean;
+    headerSlotId?: string;
+    inArticleSlotId?: string;
+    sidebarSlotId?: string;
+    adsTxtContent?: string;
+    testMode?: boolean;
+  };
+  seoConfig?: {
+    googleSiteVerification?: string;
+    bingSiteVerification?: string;
+    defaultKeywords?: string[];
+    authorName?: string;
+    twitterHandle?: string;
+    ogDefaultImage?: string;
   };
   oneSignalAppId?: string;
 }

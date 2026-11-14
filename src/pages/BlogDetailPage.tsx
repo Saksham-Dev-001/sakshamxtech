@@ -23,6 +23,7 @@ import {
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { SEOHead } from '../components/shared/SEOHead';
+import { AdBanner } from '../components/shared/AdBanner';
 import { formatRealDate, getRelativeTimeString, isBlogPostLive, formatDelhiDateTime } from '../utils/realTime';
 import { BlogEditorModal, extractYouTubeVideoId } from './admin/ContentEditorModals';
 import { MarkdownArticleReader, extractTableOfContents } from '../components/shared/MarkdownArticleReader';
@@ -165,10 +166,19 @@ export const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ slug, navigate }
   return (
     <div className="py-6 sm:py-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
       <SEOHead
-        title={`${blog.title} | SakshamXTech`}
-        description={blog.summary || blog.content.slice(0, 160)}
+        title={blog.title}
+        description={blog.summary || blog.content.slice(0, 180)}
         canonicalPath={`/blogs/${blog.slug}`}
-        image={blog.coverImage}
+        image={blog.coverImage || (blog.youtubeVideoId ? `https://i.ytimg.com/vi/${blog.youtubeVideoId}/hqdefault.jpg` : undefined)}
+        type="article"
+        author={blog.author?.name || siteSettings.creatorName}
+        publishedTime={blog.publishedAt}
+        section={blog.category}
+        keywords={blog.tags}
+        breadcrumbs={[
+          { name: 'Tech Blogs', path: '/blogs' },
+          { name: blog.title, path: `/blogs/${blog.slug}` }
+        ]}
       />
 
       {/* TOP READING PROGRESS BAR (FIXED HEADER STRIP) */}
@@ -490,6 +500,9 @@ export const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ slug, navigate }
         </div>
       )}
 
+      {/* In-Article Google AdSense Banner (Top Placement) */}
+      <AdBanner placement="inArticle" />
+
       {/* 6. PRIMARY ARTICLE CONTENT - POWERED BY MARKDOWN READER */}
       <div className="p-6 sm:p-10 rounded-3xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm space-y-6">
         <MarkdownArticleReader content={blog.content} />
@@ -508,6 +521,9 @@ export const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ slug, navigate }
           </div>
         )}
       </div>
+
+      {/* In-Article Google AdSense Banner (Bottom Placement) */}
+      <AdBanner placement="inArticle" />
 
       {/* 6.5 SOCIAL SHARING BAR */}
       <div className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs">
