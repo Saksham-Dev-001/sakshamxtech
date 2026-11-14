@@ -1,6 +1,6 @@
 // Dynamic ads.txt handler for Google AdSense
 export default async function handler(req, res) {
-  let adsTxt = 'google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0';
+  let adsTxt = 'google.com, pub-5987406991972289, DIRECT, f08c47fec0942fa0';
 
   try {
     const firestoreUrl = 'https://firestore.googleapis.com/v1/projects/sakshamxtech-7fe06/databases/(default)/documents/appConfig/siteSettings';

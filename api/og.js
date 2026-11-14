@@ -190,6 +190,10 @@ export default async function handler(req, res) {
   <meta name="description" content="${safeDesc}" />
   <link rel="canonical" href="${safeUrl}" />
 
+  <!-- Google AdSense Account Ownership & Verification Tag -->
+  <meta name="google-adsense-account" content="ca-pub-5987406991972289" />
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5987406991972289" crossorigin="anonymous"></script>
+
   <!-- Open Graph / WhatsApp / Facebook / LinkedIn / Discord -->
   <meta property="og:type" content="article" />
   <meta property="og:site_name" content="SakshamXTech" />
