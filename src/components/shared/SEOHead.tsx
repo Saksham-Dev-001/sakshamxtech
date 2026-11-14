@@ -319,9 +319,6 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
       '@context': 'https://schema.org',
       '@graph': schemaGraph,
     });
-
-    // Smooth scroll to top on page navigation
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [
     title,
     description,

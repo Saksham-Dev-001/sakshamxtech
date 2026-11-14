@@ -116,6 +116,10 @@ export const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ slug, navigate }
   const bookmarked = isBookmarked(blog.id);
   const cleanVideoId = extractYouTubeVideoId(blog.youtubeVideoId || '');
   const toc = useMemo(() => extractTableOfContents(blog.content), [blog.content]);
+  const breadcrumbs = useMemo(() => [
+    { name: 'Tech Blogs', path: '/blogs' },
+    { name: blog.title, path: `/blogs/${blog.slug}` }
+  ], [blog.title, blog.slug]);
 
   const handleShareLink = async () => {
     const shareUrl = window.location.href;
@@ -183,10 +187,7 @@ export const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ slug, navigate }
         publishedTime={blog.publishedAt}
         section={blog.category}
         keywords={blog.tags}
-        breadcrumbs={[
-          { name: 'Tech Blogs', path: '/blogs' },
-          { name: blog.title, path: `/blogs/${blog.slug}` }
-        ]}
+        breadcrumbs={breadcrumbs}
       />
 
       {/* TOP READING PROGRESS BAR (FIXED HEADER STRIP) */}
