@@ -18,7 +18,8 @@ import {
   List,
   ChevronRight,
   Eye,
-  BookOpen
+  BookOpen,
+  Play
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
@@ -41,8 +42,15 @@ export const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ slug, navigate }
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [showToc, setShowToc] = useState(true);
   const [readingProgress, setReadingProgress] = useState(0);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
 
   const blog = blogs.find((b) => b.slug === slug) || blogs[0];
+
+  // Reset scroll and video player state when article slug changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    setIsVideoPlaying(false);
+  }, [slug]);
 
   // Scroll reading progress indicator
   useEffect(() => {
@@ -183,7 +191,7 @@ export const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ slug, navigate }
 
       {/* TOP READING PROGRESS BAR (FIXED HEADER STRIP) */}
       <div 
-        className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-cyan-400 to-indigo-600 z-50 transition-all duration-150"
+        className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-cyan-400 to-indigo-600 z-50 transition-all duration-150 pointer-events-none"
         style={{ width: `${readingProgress}%` }}
       />
 
@@ -430,24 +438,63 @@ export const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ slug, navigate }
               <Youtube className="w-4 h-4 text-red-600" />
               <span>Video Tutorial Walkthrough</span>
             </span>
-            <a
-              href={`https://www.youtube.com/watch?v=${cleanVideoId}`}
-              target="_blank"
-              rel="noreferrer"
-              className="text-red-600 hover:underline flex items-center gap-1"
-            >
-              <span>Watch on YouTube ↗</span>
-            </a>
+            <div className="flex items-center gap-3">
+              {isVideoPlaying && (
+                <button
+                  type="button"
+                  onClick={() => setIsVideoPlaying(false)}
+                  className="text-xs text-slate-500 hover:text-slate-900 dark:hover:text-white cursor-pointer font-medium"
+                >
+                  Collapse Player
+                </button>
+              )}
+              <a
+                href={`https://www.youtube.com/watch?v=${cleanVideoId}`}
+                target="_blank"
+                rel="noreferrer"
+                className="text-red-600 hover:underline flex items-center gap-1"
+              >
+                <span>Watch on YouTube ↗</span>
+              </a>
+            </div>
           </div>
 
-          <div className="aspect-video rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-2xl bg-black">
-            <iframe
-              src={`https://www.youtube.com/embed/${cleanVideoId}?autoplay=0&rel=0`}
-              title={blog.title}
-              className="w-full h-full border-0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
+          <div className="relative aspect-video rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-2xl bg-black">
+            {isVideoPlaying ? (
+              <iframe
+                src={`https://www.youtube-nocookie.com/embed/${cleanVideoId}?autoplay=1&rel=0`}
+                title={blog.title}
+                className="w-full h-full border-0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            ) : (
+              <div
+                onClick={() => setIsVideoPlaying(true)}
+                className="relative w-full h-full cursor-pointer overflow-hidden flex items-center justify-center group select-none"
+                title="Click to play video walkthrough"
+              >
+                <img
+                  src={`https://i.ytimg.com/vi/${cleanVideoId}/maxresdefault.jpg`}
+                  alt={blog.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = `https://i.ytimg.com/vi/${cleanVideoId}/hqdefault.jpg`;
+                  }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/30 group-hover:bg-black/30 transition-colors" />
+
+                {/* Big Red Play Button */}
+                <div className="relative z-10 flex flex-col items-center gap-3">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-red-600 hover:bg-red-500 text-white flex items-center justify-center shadow-2xl shadow-red-600/50 group-hover:scale-110 transition-all duration-200">
+                    <Play className="w-8 h-8 sm:w-10 sm:h-10 fill-white translate-x-0.5" />
+                  </div>
+                  <span className="px-4 py-1.5 rounded-full bg-black/75 backdrop-blur-md text-white text-xs font-bold shadow-lg border border-white/10 flex items-center gap-1.5">
+                    <span>Click to Play Video Guide</span>
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       ) : blog.coverImage ? (

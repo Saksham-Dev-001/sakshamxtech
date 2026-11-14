@@ -35,6 +35,7 @@ export const UnstopDetailPage: React.FC<UnstopDetailPageProps> = ({ slug, naviga
   const [copied, setCopied] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
 
   const problem = (unstopProblems || []).find((p) => p.slug === slug) || (unstopProblems || [])[0];
 
@@ -251,24 +252,63 @@ export const UnstopDetailPage: React.FC<UnstopDetailPageProps> = ({ slug, naviga
                 <Youtube className="w-4 h-4 text-red-500 fill-red-500" />
                 <span>Video Walkthrough &amp; Code Logic</span>
               </div>
-              <a
-                href={`https://www.youtube.com/watch?v=${cleanVideoId}`}
-                target="_blank"
-                rel="noreferrer"
-                className="text-red-400 hover:text-red-300 font-bold flex items-center gap-1 transition-colors"
-              >
-                <span>Watch on YouTube</span>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
+              <div className="flex items-center gap-3">
+                {isVideoPlaying && (
+                  <button
+                    type="button"
+                    onClick={() => setIsVideoPlaying(false)}
+                    className="text-xs text-slate-400 hover:text-white cursor-pointer font-medium"
+                  >
+                    Collapse Player
+                  </button>
+                )}
+                <a
+                  href={`https://www.youtube.com/watch?v=${cleanVideoId}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-red-400 hover:text-red-300 font-bold flex items-center gap-1 transition-colors"
+                >
+                  <span>Watch on YouTube</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </div>
             </div>
             <div className="relative aspect-video bg-black">
-              <iframe
-                src={`https://www.youtube-nocookie.com/embed/${cleanVideoId}?rel=0`}
-                title={`Day ${problem.dayNumber}: ${problem.title}`}
-                className="w-full h-full border-0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
+              {isVideoPlaying ? (
+                <iframe
+                  src={`https://www.youtube-nocookie.com/embed/${cleanVideoId}?autoplay=1&rel=0`}
+                  title={`Day ${problem.dayNumber}: ${problem.title}`}
+                  className="w-full h-full border-0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              ) : (
+                <div
+                  onClick={() => setIsVideoPlaying(true)}
+                  className="relative w-full h-full cursor-pointer overflow-hidden flex items-center justify-center group select-none"
+                  title="Click to play video logic walkthrough"
+                >
+                  <img
+                    src={`https://i.ytimg.com/vi/${cleanVideoId}/maxresdefault.jpg`}
+                    alt={problem.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = `https://i.ytimg.com/vi/${cleanVideoId}/hqdefault.jpg`;
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/30 group-hover:bg-black/30 transition-colors" />
+
+                  {/* Big Red Play Button */}
+                  <div className="relative z-10 flex flex-col items-center gap-2">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-red-600 hover:bg-red-500 text-white flex items-center justify-center shadow-2xl shadow-red-600/50 group-hover:scale-110 transition-all duration-200">
+                      <Play className="w-7 h-7 sm:w-8 sm:h-8 fill-white translate-x-0.5" />
+                    </div>
+                    <span className="px-3.5 py-1 rounded-full bg-black/75 backdrop-blur-md text-white text-xs font-bold shadow-lg border border-white/10">
+                      Click to Play Video Walkthrough
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

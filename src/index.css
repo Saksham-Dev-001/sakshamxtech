@@ -10,11 +10,20 @@
     --font-mono: 'Fira Code', monospace;
   }
 
-  html, body {
+  html {
+    overflow-x: hidden;
+    overflow-y: scroll;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  body {
     font-family: var(--font-sans);
     width: 100%;
     max-width: 100%;
-    overflow-x: clip;
+    min-height: 100%;
+    overflow-x: hidden;
+    overflow-y: visible;
     -webkit-tap-highlight-color: transparent;
   }
 
