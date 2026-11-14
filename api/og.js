@@ -212,6 +212,16 @@ export default async function handler(req, res) {
   <meta name="twitter:description" content="${safeDesc}" />
   <meta name="twitter:image" content="${safeImage}" />
 
+  <!-- Immediate Client-Side Transition to Interactive App for Human Browsers -->
+  <script>
+    if (typeof window !== 'undefined' && !/bot|crawl|spider|facebookexternalhit|whatsapp|telegrambot|twitterbot/i.test(navigator.userAgent)) {
+      window.location.replace('${safeUrl}');
+    }
+  </script>
+  <noscript>
+    <meta http-equiv="refresh" content="0; url=${safeUrl}">
+  </noscript>
+
   <style>
     body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.6; color: #1e293b; max-width: 800px; margin: 0 auto; padding: 2rem 1.5rem; background: #f8fafc; }
     header { border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem; margin-bottom: 2rem; }
@@ -245,6 +255,6 @@ export default async function handler(req, res) {
 </html>`;
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  res.setHeader('Cache-Control', 'public, max-age=600, s-maxage=3600, stale-while-revalidate=86400');
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.status(200).send(html);
 }
