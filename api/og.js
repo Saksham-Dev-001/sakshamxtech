@@ -1,5 +1,5 @@
-// Dynamic Open Graph & Social Preview Generator for SakshamXTech
-// Serves rich link previews (Title, Summary, Cover Image) to WhatsApp, Telegram, Discord, Twitter & Facebook bots
+// Dynamic Open Graph & Server-Side Pre-rendered Content Generator for SakshamXTech
+// Serves rich semantic HTML and link previews to Search Bots, AI Crawlers, and Social Previews
 
 const STATIC_BLOG_FALLBACKS = {
   'google-student-ambassador-2026-guide': {
@@ -35,15 +35,15 @@ const STATIC_BLOG_FALLBACKS = {
 };
 
 export default async function handler(req, res) {
-  const { type = 'blog', slug = '' } = req.query;
+  const { type = 'home', slug = '' } = req.query;
 
   const siteOrigin = 'https://sakshamxtech.vercel.app';
   let title = 'SakshamXTech | Complete Technology, Learning, Cloud & Opportunities';
-  let description = 'Learn, build, and explore Google Cloud Arcade, Unstop POTD solutions, C Academy, tech blogs, and free swags.';
+  let description = 'Learn, build, and explore Google Cloud Arcade 2026, Unstop POTD solutions, C Academy, tech blogs, internships, and free swags. Founded by Saksham Sharma.';
   let image = `${siteOrigin}/assets/branding/saksham_banner.png`;
-  let pageUrl = `${siteOrigin}/${type === 'blog' ? 'blogs' : type}/${slug}`;
+  let pageUrl = `${siteOrigin}/`;
+  let extraContent = '';
 
-  // Helper to ensure image URLs are fully qualified absolute URLs
   const toAbsoluteUrl = (img) => {
     if (!img) return `${siteOrigin}/assets/branding/saksham_banner.png`;
     if (img.startsWith('http://') || img.startsWith('https://')) return img;
@@ -52,15 +52,34 @@ export default async function handler(req, res) {
   };
 
   try {
-    if (type === 'blog' && slug) {
-      // 1. Try static fallback dictionary first
+    if (type === 'home' || !type) {
+      pageUrl = `${siteOrigin}/`;
+      title = 'SakshamXTech | Complete Technology, Learning, Cloud & Opportunities';
+      description = 'Your comprehensive platform for Google Cloud Arcade 2026, Unstop Problem of the Day solutions, 30-Day C Programming Academy, tech internships, and free developer swags. Founded by Saksham Sharma.';
+      image = `${siteOrigin}/assets/branding/saksham_banner.png`;
+      extraContent = `
+        <section>
+          <h3>Platform Highlights:</h3>
+          <ul>
+            <li><strong>Google Cloud Arcade 2026:</strong> Walkthroughs, points calculator, and milestone roadmaps for Champion Tier swags.</li>
+            <li><strong>C Programming Academy:</strong> 30 comprehensive lectures covering GCC pipelines, memory layout, pointers, and data structures.</li>
+            <li><strong>Unstop POTD:</strong> Daily algorithms and solutions for maintaining streak.</li>
+            <li><strong>Tech Roadmaps & Blogs:</strong> In-depth articles by Saksham Sharma.</li>
+          </ul>
+        </section>
+      `;
+    } else if (type === 'blogs') {
+      pageUrl = `${siteOrigin}/blogs`;
+      title = 'Technical Blogs & Engineering Roadmaps | SakshamXTech';
+      description = 'In-depth software engineering guides, Google Cloud blueprints, Unstop POTD masterclasses, and career roadmaps.';
+    } else if (type === 'blog' && slug) {
+      pageUrl = `${siteOrigin}/blogs/${slug}`;
       if (STATIC_BLOG_FALLBACKS[slug]) {
         title = STATIC_BLOG_FALLBACKS[slug].title;
         description = STATIC_BLOG_FALLBACKS[slug].description;
         image = toAbsoluteUrl(STATIC_BLOG_FALLBACKS[slug].image);
       }
 
-      // 2. Query Firestore REST API for dynamic or updated blog articles
       const firestoreUrl = 'https://firestore.googleapis.com/v1/projects/sakshamxtech-7fe06/databases/(default)/documents/blogs';
       const response = await fetch(firestoreUrl, { headers: { 'Accept': 'application/json' } });
       if (response.ok) {
@@ -73,15 +92,23 @@ export default async function handler(req, res) {
 
         if (doc?.fields) {
           title = doc.fields.title?.stringValue || title;
-          description = doc.fields.summary?.stringValue || doc.fields.content?.stringValue?.slice(0, 180) || description;
+          description = doc.fields.summary?.stringValue || doc.fields.content?.stringValue?.slice(0, 240) || description;
           if (doc.fields.coverImage?.stringValue && !doc.fields.coverImage.stringValue.startsWith('data:')) {
             image = toAbsoluteUrl(doc.fields.coverImage.stringValue);
           } else if (doc.fields.youtubeVideoId?.stringValue) {
             image = `https://i.ytimg.com/vi/${doc.fields.youtubeVideoId.stringValue}/hqdefault.jpg`;
           }
+          if (doc.fields.content?.stringValue) {
+            extraContent = `<article><h4>Article Excerpt:</h4><p>${doc.fields.content.stringValue.slice(0, 800)}...</p></article>`;
+          }
         }
       }
+    } else if (type === 'arcade-hub') {
+      pageUrl = `${siteOrigin}/google-arcade`;
+      title = 'Google Cloud Arcade 2026 Hub & Points Calculator | SakshamXTech';
+      description = 'Complete guides, skill badges solutions, points calculator, and Champion Tier swags roadmap for Google Cloud Arcade 2026.';
     } else if (type === 'arcade' && slug) {
+      pageUrl = `${siteOrigin}/arcade/${slug}`;
       const firestoreUrl = 'https://firestore.googleapis.com/v1/projects/sakshamxtech-7fe06/databases/(default)/documents/arcadeSolutions';
       const response = await fetch(firestoreUrl, { headers: { 'Accept': 'application/json' } });
       if (response.ok) {
@@ -99,7 +126,12 @@ export default async function handler(req, res) {
           }
         }
       }
+    } else if (type === 'unstop-hub') {
+      pageUrl = `${siteOrigin}/unstop`;
+      title = 'Unstop Problem of the Day (POTD) Solutions & Streak | SakshamXTech';
+      description = 'Daily competitive programming challenges, algorithmic breakdown, and optimal solutions in C++, Python, and Java.';
     } else if (type === 'unstop' && slug) {
+      pageUrl = `${siteOrigin}/unstop/${slug}`;
       const cleanDay = slug.replace(/^day-/, '');
       const firestoreUrl = 'https://firestore.googleapis.com/v1/projects/sakshamxtech-7fe06/databases/(default)/documents/unstopProblems';
       const response = await fetch(firestoreUrl, { headers: { 'Accept': 'application/json' } });
@@ -111,15 +143,31 @@ export default async function handler(req, res) {
         if (doc?.fields) {
           title = `Day ${doc.fields.dayNumber?.integerValue}: ${doc.fields.title?.stringValue} | Unstop POTD Solution`;
           description = doc.fields.description?.stringValue || description;
-          image = 'https://sakshamxtech.vercel.app/assets/branding/potd_day7.png';
+          image = `${siteOrigin}/assets/branding/potd_day7.png`;
         }
       }
+    } else if (type === 'c-academy') {
+      pageUrl = `${siteOrigin}/c-academy`;
+      title = 'C Programming Academy | 30-Day Comprehensive Systems Course | SakshamXTech';
+      description = 'Learn C programming from scratch with 30 structured lectures, RAM memory diagrams, pointers deep-dive, GCC pipeline, and interactive online compiler.';
+    } else if (type === 'c-lesson' && slug) {
+      pageUrl = `${siteOrigin}/c-academy/${slug}`;
+      const dayNum = slug.replace(/^day-/, '');
+      title = `Day ${dayNum}: C Programming Master Lecture | SakshamXTech`;
+      description = `Complete Day ${dayNum} lecture notes, code snippets, memory layouts, and practice exercises for C Programming Academy by Saksham Sharma.`;
+    } else if (type === 'privacy') {
+      pageUrl = `${siteOrigin}/privacy`;
+      title = 'Privacy Policy | SakshamXTech';
+      description = 'SakshamXTech transparent privacy policy covering Google AdSense, advertising cookies, student data protection, and user opt-out information.';
+    } else if (type === 'terms') {
+      pageUrl = `${siteOrigin}/terms`;
+      title = 'Terms and Conditions | SakshamXTech';
+      description = 'SakshamXTech terms of service regarding educational tutorials, online compiler usage, and non-affiliation disclosures.';
     }
   } catch (err) {
-    console.warn('[OG Generator] Error querying Firestore:', err);
+    console.warn('[OG Generator] Error:', err);
   }
 
-  // Escape HTML entities to prevent broken meta tags
   const escapeHtml = (str) =>
     String(str || '')
       .replace(/&/g, '&amp;')
@@ -137,8 +185,10 @@ export default async function handler(req, res) {
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>${safeTitle}</title>
   <meta name="description" content="${safeDesc}" />
+  <link rel="canonical" href="${safeUrl}" />
 
   <!-- Open Graph / WhatsApp / Facebook / LinkedIn / Discord -->
   <meta property="og:type" content="article" />
@@ -158,15 +208,35 @@ export default async function handler(req, res) {
   <meta name="twitter:description" content="${safeDesc}" />
   <meta name="twitter:image" content="${safeImage}" />
 
-  <!-- Instant redirect for real browser visitors -->
-  <meta http-equiv="refresh" content="0;url=${safeUrl}" />
-  <script>window.location.replace("${safeUrl}");</script>
+  <style>
+    body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.6; color: #1e293b; max-width: 800px; margin: 0 auto; padding: 2rem 1.5rem; background: #f8fafc; }
+    header { border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem; margin-bottom: 2rem; }
+    nav a { margin-right: 1rem; color: #0284c7; text-decoration: none; font-size: 0.9rem; font-weight: 600; }
+    h1 { font-size: 2rem; color: #0f172a; margin-bottom: 0.5rem; }
+    p { font-size: 1.05rem; color: #475569; }
+    .hero-img { width: 100%; max-height: 400px; object-fit: cover; border-radius: 1rem; margin: 1.5rem 0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    .btn { display: inline-block; padding: 0.75rem 1.5rem; background: #0284c7; color: #ffffff; text-decoration: none; border-radius: 0.75rem; font-weight: bold; margin-top: 1rem; }
+  </style>
 </head>
-<body style="font-family: system-ui, sans-serif; padding: 2rem; max-width: 600px; margin: auto;">
-  <h2>${safeTitle}</h2>
-  <p>${safeDesc}</p>
-  <img src="${safeImage}" alt="${safeTitle}" style="width: 100%; border-radius: 12px; margin-top: 1rem;" />
-  <p><a href="${safeUrl}">Continue reading on SakshamXTech &rarr;</a></p>
+<body>
+  <header>
+    <nav>
+      <a href="${siteOrigin}/">Home</a>
+      <a href="${siteOrigin}/google-arcade">Google Cloud Arcade</a>
+      <a href="${siteOrigin}/c-academy">C Academy</a>
+      <a href="${siteOrigin}/unstop">Unstop POTD</a>
+      <a href="${siteOrigin}/blogs">Tech Blogs</a>
+      <a href="${siteOrigin}/privacy">Privacy Policy</a>
+    </nav>
+  </header>
+
+  <main>
+    <h1>${safeTitle}</h1>
+    <p>${safeDesc}</p>
+    ${safeImage ? `<img src="${safeImage}" alt="${safeTitle}" class="hero-img" />` : ''}
+    ${extraContent}
+    <p><a href="${safeUrl}" class="btn">Open Interactive Experience on SakshamXTech &rarr;</a></p>
+  </main>
 </body>
 </html>`;
 
